@@ -54,14 +54,18 @@ void GameApp::Tick(float deltaTime)
     float playerXInput = im.IsKeyPressed(GLFW_KEY_W) - im.IsKeyPressed(GLFW_KEY_S);
     float playerYInput = im.IsKeyPressed(GLFW_KEY_D) - im.IsKeyPressed(GLFW_KEY_A);
     float playerStrafe = - im.IsKeyPressed(GLFW_KEY_Q) + im.IsKeyPressed(GLFW_KEY_E);
+    float playerVerticalInput = im.IsKeyPressed(GLFW_KEY_R) - im.IsKeyPressed(GLFW_KEY_F);
     float speed = 1.7f * deltaTime * playerXInput;
     float strafe = 1.7f * deltaTime * playerStrafe;
     float angleSpeed = -4.0f * deltaTime * playerYInput;
     float camX = worldRenderer.GetCamX(), camY = worldRenderer.GetCamY();
     float camAngle = worldRenderer.GetCamAngle();
+    float camVerticalAngle = worldRenderer.GetCamVerticalAngle();
+    camVerticalAngle += 10.0f * deltaTime * playerVerticalInput;
     worldRenderer.SetCamX(camX + speed * sin(-camAngle) + strafe * cos(-camAngle));
     worldRenderer.SetCamY(camY + speed * cos(-camAngle) - strafe * sin(-camAngle));
     worldRenderer.SetCamAngle(camAngle + angleSpeed);
+    worldRenderer.SetCamVerticalAngle(camVerticalAngle);
 }
 
 void GameApp::Render()

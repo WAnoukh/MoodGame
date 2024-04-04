@@ -48,12 +48,12 @@ std::vector<Col> sectorColor = {
     Col(0x00, 0xff, 0xff), Col(0xff, 0xff, 0xff), Col(0x00, 0x00, 0x00)
 };
 
-void WorldRenderer::Render(const size_t width, const size_t height, unsigned char* outData)
+void WorldRenderer::Render(const int width, const int height, unsigned char* outData)
 {
     const float ratio = static_cast<float>(width) / static_cast<float>(height);
-    for (size_t row = 0; row < width; ++row)
+    for (int row = 0; row < width; ++row)
     {
-        for (size_t col = 0; col < height; ++col)
+        for (int col = 0; col < height; ++col)
         {
             outData[(row + col * width) * 3] = 0x00;
             outData[(row + col * width) * 3 + 1] = 0x00;
@@ -63,12 +63,12 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
 
     struct ColumnDrawData
     {
-        size_t firstRow;
-        size_t lastRow;
+        int firstRow;
+        int lastRow;
     };
 
     auto* columnData = new ColumnDrawData[width];
-    for (size_t i = 0; i < width; ++i)
+    for (int i = 0; i < width; ++i)
     {
         columnData[i] = {0, height};
     }
@@ -81,12 +81,12 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
     struct QueueElement
     {
         size_t sectorIndex;
-        size_t colStart;
-        size_t colEnd;
+        int colStart;
+        int colEnd;
     };
 
     std::queue<QueueElement> queue;
-    queue.push({curentSector, static_cast<size_t>(0), width});
+    queue.push({curentSector, 0, width});
     camZ = world->GetSector(curentSector)->floor + 0.9f;
 
     const float
@@ -108,10 +108,10 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
     {
         QueueElement element = queue.front();
         Sector sector = *world->GetSector(element.sectorIndex);
-        size_t minCol = element.colStart;
-        size_t maxCol = element.colEnd;
+        int  minCol = element.colStart;
+        int  maxCol = element.colEnd;
         queue.pop();
-        for (size_t i = sector.firstWall; i < sector.firstWall + sector.numWalls; i++)
+        for (int  i = sector.firstWall; i < sector.firstWall + sector.numWalls; i++)
         {
             Wall* wall = world->GetWall(i);
             //center wall on camera and reorient it
@@ -181,10 +181,10 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
             );
 
 
-            const size_t virtualFirstCol = static_cast<size_t>(virtualStartf);
-            const size_t virtualLastCol = static_cast<size_t>(virtualEndf);
-            const size_t realFirstCol = std::max(minCol, virtualFirstCol);
-            const size_t realLastCol = std::min(maxCol, virtualLastCol);
+            const int virtualFirstCol = virtualStartf;
+            const int virtualLastCol = virtualEndf;
+            const int realFirstCol = std::max(minCol, virtualFirstCol);
+            const int realLastCol = std::min(maxCol, virtualLastCol);
 
             if (virtualLastCol < virtualFirstCol)
             {
@@ -228,7 +228,7 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
                     bottomPortal = true;
                 }
             }
-            for (size_t col = realFirstCol; col < realLastCol; ++col)
+            for (int col = realFirstCol; col < realLastCol; ++col)
             {
                 const float drawRate = static_cast<float>(col - virtualFirstCol) / static_cast<float>(virtualLastCol -
                     virtualFirstCol);
@@ -244,7 +244,7 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
                     const float rayY = screenDist;
                     const float rayX = (col / static_cast<float>(width) - 0.5f) * ratio;
                     float rayZ;
-                    for (size_t row = newRealLastRow; row < columnData[col].lastRow; ++row)
+                    for (int row = newRealLastRow; row < columnData[col].lastRow; ++row)
                     {
                         float rotatedRayX = rayY * std::cos(camAngle) + rayX * std::sin(camAngle);
                         float rotatedRayY = rayY * std::sin(camAngle) - rayX * std::cos(camAngle);
@@ -266,7 +266,7 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
                         outData[(col + row * width) * 3 + 2] = ceilingTexture->data[(textureX + textureY *
                             ceilingTexture->width) * 3 + 2];
                     }
-                    for (size_t row = columnData[col].firstRow; row < newRealFirstRow; ++row)
+                    for (int row = columnData[col].firstRow; row < newRealFirstRow; ++row)
                     {
                         float rotatedRayX = rayY * std::cos(camAngle) + rayX * std::sin(camAngle);
                         float rotatedRayY = rayY * std::sin(camAngle) - rayX * std::cos(camAngle);
@@ -312,7 +312,7 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
                         {
                             continue;
                         }
-                        for (size_t row = newRealFirstRow; row < newRealLastRow; ++row)
+                        for (int row = newRealFirstRow; row < newRealLastRow; ++row)
                         {
                             // Draw wall
                             int textureY = (row - wallVirtualFirstRow) / static_cast<float>(wallVirtualLastRow -
@@ -346,7 +346,7 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
                         {
                             tmpX -= x1;
                             tmpY -= y1;
-                            for (size_t row = newRealFirstRow; row < portalFirstRow; ++row)
+                            for (int row = newRealFirstRow; row < portalFirstRow; ++row)
                             {
                                 // Draw portal top wall
                                 int textureY = (row - wallVirtualFirstRow) / static_cast<float>(wallVirtualLastRow -
@@ -381,7 +381,7 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
                         {
                             tmpX -= x1;
                             tmpY -= y1;
-                            for (size_t row = portalLastRow; row < newRealLastRow; ++row)
+                            for (int row = portalLastRow; row < newRealLastRow; ++row)
                             {
                                 int textureY = (row - wallVirtualFirstRow) / static_cast<float>(wallVirtualLastRow -
                                     wallVirtualFirstRow) * wallTexture->height;
