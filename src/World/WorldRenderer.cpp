@@ -50,6 +50,7 @@ std::vector<Col> sectorColor = {
 
 void WorldRenderer::Render(const int width, const int height, unsigned char* outData)
 {
+    const int verticalOffset = camVerticalAngle;
     const float ratio = static_cast<float>(width) / static_cast<float>(height);
     for (int row = 0; row < width; ++row)
     {
@@ -201,10 +202,10 @@ void WorldRenderer::Render(const int width, const int height, unsigned char* out
 
             //compute perpendiculare distance
             //const float wall1FirstRow = screenDist * (camZ- sector.ceil) / y1 + height / 2;
-            const float wall1FirstRow = (screenDist * (camZ - sector.ceil) / y1 + 0.5f) * height;
-            const float wall1LastRow = (screenDist * (camZ - sector.floor) / y1 + 0.5f) * height;
-            const float wall2FirstRow = (screenDist * (camZ - sector.ceil) / y2 + 0.5f) * height;
-            const float wall2LastRow = (screenDist * (camZ - sector.floor) / y2 + 0.5f) * height;
+            const float wall1FirstRow = (screenDist * (camZ - sector.ceil) / y1 + 0.5f) * height + verticalOffset;
+            const float wall1LastRow = (screenDist * (camZ - sector.floor) / y1 + 0.5f) * height+ verticalOffset;
+            const float wall2FirstRow = (screenDist * (camZ - sector.ceil) / y2 + 0.5f) * height+ verticalOffset;
+            const float wall2LastRow = (screenDist * (camZ - sector.floor) / y2 + 0.5f) * height+ verticalOffset;
 
             float portal1FirstRow = -1;
             float portal2FirstRow = -1;
@@ -217,14 +218,14 @@ void WorldRenderer::Render(const int width, const int height, unsigned char* out
                 Sector portalSector = *world->GetSector(wall->portal);
                 if (portalSector.ceil < sector.ceil)
                 {
-                    portal1FirstRow = (screenDist * (camZ - portalSector.ceil) / y1 + 0.5f) * height;
-                    portal2FirstRow = (screenDist * (camZ - portalSector.ceil) / y2 + 0.5f) * height;
+                    portal1FirstRow = (screenDist * (camZ - portalSector.ceil) / y1 + 0.5f) * height+ verticalOffset;
+                    portal2FirstRow = (screenDist * (camZ - portalSector.ceil) / y2 + 0.5f) * height+ verticalOffset;
                     topPortal = true;
                 }
                 if (portalSector.floor > sector.floor)
                 {
-                    portal1LastRow = (screenDist * (camZ - portalSector.floor) / y1 + 0.5f) * height;
-                    portal2LastRow = (screenDist * (camZ - portalSector.floor) / y2 + 0.5f) * height;
+                    portal1LastRow = (screenDist * (camZ - portalSector.floor) / y1 + 0.5f) * height+ verticalOffset;
+                    portal2LastRow = (screenDist * (camZ - portalSector.floor) / y2 + 0.5f) * height+ verticalOffset;
                     bottomPortal = true;
                 }
             }
@@ -248,7 +249,7 @@ void WorldRenderer::Render(const int width, const int height, unsigned char* out
                     {
                         float rotatedRayX = rayY * std::cos(camAngle) + rayX * std::sin(camAngle);
                         float rotatedRayY = rayY * std::sin(camAngle) - rayX * std::cos(camAngle);
-                        rayZ = (row / static_cast<float>(height)) - 0.5f;
+                        rayZ = ((row-verticalOffset) / static_cast<float>(height)) - 0.5f;
                         float floorX = (sector.floor - camZ) * rotatedRayX / (rayZ);
                         float floorY = (sector.floor - camZ) * rotatedRayY / (rayZ);
                         floorX -= camY;
@@ -270,7 +271,7 @@ void WorldRenderer::Render(const int width, const int height, unsigned char* out
                     {
                         float rotatedRayX = rayY * std::cos(camAngle) + rayX * std::sin(camAngle);
                         float rotatedRayY = rayY * std::sin(camAngle) - rayX * std::cos(camAngle);
-                        rayZ = (row / static_cast<float>(height)) - 0.5f;
+                        rayZ = ((row-verticalOffset) / static_cast<float>(height)) - 0.5f;
                         float floorX = (sector.ceil - camZ) * rotatedRayX / (rayZ);
                         float floorY = (sector.ceil - camZ) * rotatedRayY / (rayZ);
                         floorX -= camY;

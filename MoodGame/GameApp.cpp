@@ -61,7 +61,7 @@ void GameApp::Tick(float deltaTime)
     float camX = worldRenderer.GetCamX(), camY = worldRenderer.GetCamY();
     float camAngle = worldRenderer.GetCamAngle();
     float camVerticalAngle = worldRenderer.GetCamVerticalAngle();
-    camVerticalAngle += 10.0f * deltaTime * playerVerticalInput;
+    camVerticalAngle += 250.0f * deltaTime * playerVerticalInput;
     worldRenderer.SetCamX(camX + speed * sin(-camAngle) + strafe * cos(-camAngle));
     worldRenderer.SetCamY(camY + speed * cos(-camAngle) - strafe * sin(-camAngle));
     worldRenderer.SetCamAngle(camAngle + angleSpeed);
