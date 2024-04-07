@@ -35,6 +35,18 @@ bool linesIntersection(float x1, float y1, float x2, float y2, float x3, float y
     return false;
 }
 
+float linesIntersection(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4)
+{
+    float deno = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    if (abs(deno) <= 0.000001f)
+    {
+        return -1;
+    }
+    float t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / deno;
+    //float u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / deno;
+    return t;
+}
+
 struct Col
 {
     Col(char r, char g, char b): r(r), g(g), b(b)
@@ -48,12 +60,13 @@ std::vector<Col> sectorColor = {
     Col(0x00, 0xff, 0xff), Col(0xff, 0xff, 0xff), Col(0x00, 0x00, 0x00)
 };
 
-void WorldRenderer::Render(const size_t width, const size_t height, unsigned char* outData)
+void WorldRenderer::Render(const int width, const int height, unsigned char* outData)
 {
+    const int verticalOffset = camVerticalAngle;
     const float ratio = static_cast<float>(width) / static_cast<float>(height);
-    for (size_t row = 0; row < width; ++row)
+    for (int row = 0; row < width; ++row)
     {
-        for (size_t col = 0; col < height; ++col)
+        for (int col = 0; col < height; ++col)
         {
             outData[(row + col * width) * 3] = 0x00;
             outData[(row + col * width) * 3 + 1] = 0x00;
@@ -63,12 +76,12 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
 
     struct ColumnDrawData
     {
-        size_t firstRow;
-        size_t lastRow;
+        int firstRow;
+        int lastRow;
     };
 
     auto* columnData = new ColumnDrawData[width];
-    for (size_t i = 0; i < width; ++i)
+    for (int i = 0; i < width; ++i)
     {
         columnData[i] = {0, height};
     }
@@ -81,12 +94,12 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
     struct QueueElement
     {
         size_t sectorIndex;
-        size_t colStart;
-        size_t colEnd;
+        int colStart;
+        int colEnd;
     };
 
     std::queue<QueueElement> queue;
-    queue.push({curentSector, static_cast<size_t>(0), width});
+    queue.push({curentSector, 0, width});
     camZ = world->GetSector(curentSector)->floor + 0.9f;
 
     const float
@@ -101,6 +114,8 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
     const float fnrx = NEAR * sin(maxAngle);
     const float fnry = NEAR * cos(maxAngle);
     const float screenDist = ratio / (2.0f * tan(HFOV * M_PI_2 / 180));
+    const float cosCameraAngle = std::cos(camAngle);
+    const float sinCameraAngle = std::sin(camAngle);
     //const float screenDistY = height / 2.0f* tan(VFOV * M_PI_2 / 180);
     //const float screenDistY2 = 1.0f / tan(HFOV * M_PI_2 / 180) ;
     //const float screenDistY3 = 1.0f / tan(VFOV  * M_PI_2 / 180) * ratio;
@@ -108,10 +123,10 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
     {
         QueueElement element = queue.front();
         Sector sector = *world->GetSector(element.sectorIndex);
-        size_t minCol = element.colStart;
-        size_t maxCol = element.colEnd;
+        int minCol = element.colStart;
+        int maxCol = element.colEnd;
         queue.pop();
-        for (size_t i = sector.firstWall; i < sector.firstWall + sector.numWalls; i++)
+        for (int i = sector.firstWall; i < sector.firstWall + sector.numWalls; i++)
         {
             Wall* wall = world->GetWall(i);
             //center wall on camera and reorient it
@@ -123,7 +138,10 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
             float y1 = tempOrientedX1 * sin(-camAngle) + tempOrientedY1 * cos(-camAngle);
             float x2 = tempOrientedX2 * cos(-camAngle) - tempOrientedY2 * sin(-camAngle);
             float y2 = tempOrientedX2 * sin(-camAngle) + tempOrientedY2 * cos(-camAngle);
-
+            const float unclippedX1 = x1;
+            const float unclippedY1 = y1;
+            const float unclippedX2 = x2;
+            const float unclippedY2 = y2;
             if (y1 <= 0 && y2 <= 0)
             {
                 //wall is behind the camera
@@ -133,33 +151,35 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
             float endOffset = 0;
             float angle1 = atan2(x1, y1);
             float angle2 = atan2(x2, y2);
-            float tmpX, tmpY;
-            if (linesIntersection(x1, y1, x2, y2, fflx, ffly, fnlx, fnly, tmpX, tmpY))
             {
-                startOffset = sqrt((tmpX - x1) * (tmpX - x1) + (tmpY - y1) * (tmpY - y1));
-                x1 = tmpX;
-                y1 = tmpY;
-                angle1 = minAngle;
-            }
-            else
-            {
-                if (angle1 < minAngle)
+                float tmpX, tmpY;
+                if (linesIntersection(x1, y1, x2, y2, fflx, ffly, fnlx, fnly, tmpX, tmpY))
                 {
-                    continue;
+                    startOffset = sqrt((tmpX - x1) * (tmpX - x1) + (tmpY - y1) * (tmpY - y1));
+                    x1 = tmpX;
+                    y1 = tmpY;
+                    angle1 = minAngle;
                 }
-            }
-            if (linesIntersection(x1, y1, x2, y2, ffrx, ffry, fnrx, fnry, tmpX, tmpY))
-            {
-                endOffset = sqrt((tmpX - x2) * (tmpX - x2) + (tmpY - y2) * (tmpY - y2));
-                x2 = tmpX;
-                y2 = tmpY;
-                angle2 = maxAngle;
-            }
-            else
-            {
-                if (angle2 > maxAngle)
+                else
                 {
-                    continue;
+                    if (angle1 < minAngle)
+                    {
+                        continue;
+                    }
+                }
+                if (linesIntersection(x1, y1, x2, y2, ffrx, ffry, fnrx, fnry, tmpX, tmpY))
+                {
+                    endOffset = sqrt((tmpX - x2) * (tmpX - x2) + (tmpY - y2) * (tmpY - y2));
+                    x2 = tmpX;
+                    y2 = tmpY;
+                    angle2 = maxAngle;
+                }
+                else
+                {
+                    if (angle2 > maxAngle)
+                    {
+                        continue;
+                    }
                 }
             }
 
@@ -181,10 +201,10 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
             );
 
 
-            const size_t virtualFirstCol = static_cast<size_t>(virtualStartf);
-            const size_t virtualLastCol = static_cast<size_t>(virtualEndf);
-            const size_t realFirstCol = std::max(minCol, virtualFirstCol);
-            const size_t realLastCol = std::min(maxCol, virtualLastCol);
+            const int virtualFirstCol = virtualStartf;
+            const int virtualLastCol = virtualEndf;
+            const int realFirstCol = std::max(minCol, virtualFirstCol);
+            const int realLastCol = std::min(maxCol, virtualLastCol);
 
             if (virtualLastCol < virtualFirstCol)
             {
@@ -201,10 +221,10 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
 
             //compute perpendiculare distance
             //const float wall1FirstRow = screenDist * (camZ- sector.ceil) / y1 + height / 2;
-            const float wall1FirstRow = (screenDist * (camZ - sector.ceil) / y1 + 0.5f) * height;
-            const float wall1LastRow = (screenDist * (camZ - sector.floor) / y1 + 0.5f) * height;
-            const float wall2FirstRow = (screenDist * (camZ - sector.ceil) / y2 + 0.5f) * height;
-            const float wall2LastRow = (screenDist * (camZ - sector.floor) / y2 + 0.5f) * height;
+            const float wall1FirstRow = (screenDist * (camZ - sector.ceil) / y1 + 0.5f) * height + verticalOffset;
+            const float wall1LastRow = (screenDist * (camZ - sector.floor) / y1 + 0.5f) * height + verticalOffset;
+            const float wall2FirstRow = (screenDist * (camZ - sector.ceil) / y2 + 0.5f) * height + verticalOffset;
+            const float wall2LastRow = (screenDist * (camZ - sector.floor) / y2 + 0.5f) * height + verticalOffset;
 
             float portal1FirstRow = -1;
             float portal2FirstRow = -1;
@@ -217,18 +237,18 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
                 Sector portalSector = *world->GetSector(wall->portal);
                 if (portalSector.ceil < sector.ceil)
                 {
-                    portal1FirstRow = (screenDist * (camZ - portalSector.ceil) / y1 + 0.5f) * height;
-                    portal2FirstRow = (screenDist * (camZ - portalSector.ceil) / y2 + 0.5f) * height;
+                    portal1FirstRow = (screenDist * (camZ - portalSector.ceil) / y1 + 0.5f) * height + verticalOffset;
+                    portal2FirstRow = (screenDist * (camZ - portalSector.ceil) / y2 + 0.5f) * height + verticalOffset;
                     topPortal = true;
                 }
                 if (portalSector.floor > sector.floor)
                 {
-                    portal1LastRow = (screenDist * (camZ - portalSector.floor) / y1 + 0.5f) * height;
-                    portal2LastRow = (screenDist * (camZ - portalSector.floor) / y2 + 0.5f) * height;
+                    portal1LastRow = (screenDist * (camZ - portalSector.floor) / y1 + 0.5f) * height + verticalOffset;
+                    portal2LastRow = (screenDist * (camZ - portalSector.floor) / y2 + 0.5f) * height + verticalOffset;
                     bottomPortal = true;
                 }
             }
-            for (size_t col = realFirstCol; col < realLastCol; ++col)
+            for (int col = realFirstCol; col < realLastCol; ++col)
             {
                 const float drawRate = static_cast<float>(col - virtualFirstCol) / static_cast<float>(virtualLastCol -
                     virtualFirstCol);
@@ -244,11 +264,11 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
                     const float rayY = screenDist;
                     const float rayX = (col / static_cast<float>(width) - 0.5f) * ratio;
                     float rayZ;
-                    for (size_t row = newRealLastRow; row < columnData[col].lastRow; ++row)
+                    for (int row = newRealLastRow; row < columnData[col].lastRow; ++row)
                     {
-                        float rotatedRayX = rayY * std::cos(camAngle) + rayX * std::sin(camAngle);
-                        float rotatedRayY = rayY * std::sin(camAngle) - rayX * std::cos(camAngle);
-                        rayZ = (row / static_cast<float>(height)) - 0.5f;
+                        float rotatedRayX = rayY * cosCameraAngle + rayX * sinCameraAngle;
+                        float rotatedRayY = rayY * sinCameraAngle - rayX * cosCameraAngle;
+                        rayZ = ((row - verticalOffset) / static_cast<float>(height)) - 0.5f;
                         float floorX = (sector.floor - camZ) * rotatedRayX / (rayZ);
                         float floorY = (sector.floor - camZ) * rotatedRayY / (rayZ);
                         floorX -= camY;
@@ -257,43 +277,36 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
                         int textureX = abs(static_cast<int>(floorX * ceilingTexture->width)) % ceilingTexture->width;
                         int textureY = abs(static_cast<int>(floorY * ceilingTexture->height)) % ceilingTexture->
                             height;
-
+                        const int index = (col + row * width) * 3;
+                        const int textureIndex = (textureX + textureY * ceilingTexture->width) * 3;
                         // Draw floor
-                        outData[(col + row * width) * 3] = ceilingTexture->data[(textureX + textureY * ceilingTexture->
+                        outData[index] = ceilingTexture->data[(textureX + textureY * ceilingTexture->
                             width) * 3];
-                        outData[(col + row * width) * 3 + 1] = ceilingTexture->data[(textureX + textureY *
+                        outData[index + 1] = ceilingTexture->data[(textureX + textureY *
                             ceilingTexture->width) * 3 + 1];
-                        outData[(col + row * width) * 3 + 2] = ceilingTexture->data[(textureX + textureY *
+                        outData[index + 2] = ceilingTexture->data[(textureX + textureY *
                             ceilingTexture->width) * 3 + 2];
                     }
-                    for (size_t row = columnData[col].firstRow; row < newRealFirstRow; ++row)
+                    for (int row = columnData[col].firstRow; row < newRealFirstRow; ++row)
                     {
-                        float rotatedRayX = rayY * std::cos(camAngle) + rayX * std::sin(camAngle);
-                        float rotatedRayY = rayY * std::sin(camAngle) - rayX * std::cos(camAngle);
-                        rayZ = (row / static_cast<float>(height)) - 0.5f;
+                        float rotatedRayX = rayY * cosCameraAngle + rayX * sinCameraAngle;
+                        float rotatedRayY = rayY * sinCameraAngle - rayX * cosCameraAngle;
+                        rayZ = ((row - verticalOffset) / static_cast<float>(height)) - 0.5f;
                         float floorX = (sector.ceil - camZ) * rotatedRayX / (rayZ);
                         float floorY = (sector.ceil - camZ) * rotatedRayY / (rayZ);
                         floorX -= camY;
+                        floorY += camX;
 
-                        float temp = std::fmod(abs(floorX), 1.0f);
-                        if (temp < 0.1f)
-                        {
-                            outData[(col + row * width) * 3] = 0xff;
-                            outData[(col + row * width) * 3 + 1] = 0xff;
-                            outData[(col + row * width) * 3 + 2] = 0xff * 0;
-                            continue;
-                        }
-
-                        //float rfloorX = floorX * std::cos(-camAngle) - floorY * std::sin(-camAngle);
-                        //float rfloorY = floorX * std::sin(-camAngle) + floorY * std::cos(-camAngle);
-
-                        float textureX = abs(static_cast<float>(floorX));
-                        float textureY = abs(static_cast<float>(floorY));
+                        int textureX = abs(static_cast<int>(floorX * ceilingTexture->width)) % ceilingTexture->width;
+                        int textureY = abs(static_cast<int>(floorY * ceilingTexture->height)) % ceilingTexture->
+                            height;
 
                         // Draw floor
-                        outData[(col + row * width) * 3] = 0xff * textureX;
-                        outData[(col + row * width) * 3 + 1] = 0xff * 0;
-                        outData[(col + row * width) * 3 + 2] = 0xff * 0;
+                        const int index = (col + row * width) * 3;
+                        const int textureIndex = (textureX + textureY * ceilingTexture->width) * 3;
+                        outData[index] = ceilingTexture->data[textureIndex];
+                        outData[index + 1] = ceilingTexture->data[textureIndex + 1];
+                        outData[index + 2] = ceilingTexture->data[textureIndex + 2];
                     }
                 }
                 if (!wall->portal)
@@ -301,35 +314,37 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
                     float rayY = screenDist;
                     float inter = col / static_cast<float>(width) - 0.5f;
                     float rayX = (inter) * ratio;
-                    float angleTemp = atan2(rayX, rayY);
-                    float angleTemp2 = minAngle;
-                    float tmpX, tmpY;
-                    if (linesIntersection(x1, y1, x2, y2, 0, 0, rayX * 1000.f, rayY * 1000.f, tmpX, tmpY))
+                    float tempT;
+                    if (col == realFirstCol)
                     {
-                        tmpX -= x1;
-                        tmpY -= y1;
-                        if (newRealLastRow < newRealFirstRow)
-                        {
-                            continue;
-                        }
-                        for (size_t row = newRealFirstRow; row < newRealLastRow; ++row)
-                        {
-                            // Draw wall
-                            int textureY = (row - wallVirtualFirstRow) / static_cast<float>(wallVirtualLastRow -
-                                wallVirtualFirstRow) * wallTexture->height;
-                            float partialLength = sqrt(tmpX * tmpX + tmpY * tmpY);
-                            int textureX = abs(static_cast<int>((startOffset + partialLength) * wallTexture->width)) %
-                                wallTexture->width;
-                            outData[(col + row * width) * 3] = wallTexture->data[(textureX + textureY * wallTexture->
-                                width) * 3];
-                            outData[(col + row * width) * 3 + 1] = wallTexture->data[(textureX + textureY * wallTexture
-                                ->width) * 3 + 1];
-                            outData[(col + row * width) * 3 + 2] = wallTexture->data[(textureX + textureY * wallTexture
-                                ->width) * 3 + 2];
-                        }
+                        tempT = 0;
                     }
-                    columnData[col].firstRow = 1;
-                    columnData[col].lastRow = 0;
+                    else if (col == realLastCol - 1)
+                    {
+                        tempT = 1;
+                    }
+                    else
+                    {
+                        tempT = linesIntersection(unclippedX1, unclippedY1, unclippedX2, unclippedY2, 0, 0,
+                                                  rayX * 1000.f, rayY * 1000.f);
+                    }
+                    /*if (newRealLastRow < newRealFirstRow)
+                    {
+                        continue;
+                    }*/
+                    int textureX = abs(static_cast<int>(tempT * wallTexture->width)) %
+                        wallTexture->width;
+                    for (int row = newRealFirstRow; row < newRealLastRow; ++row)
+                    {
+                        // Draw wall
+                        int textureY = (row - wallVirtualFirstRow) / static_cast<float>(wallVirtualLastRow -
+                            wallVirtualFirstRow) * wallTexture->height;
+                        const int index = (col + row * width) * 3;
+                        const int textureIndex = (textureX + textureY * wallTexture->width) * 3;
+                        outData[index] = wallTexture->data[textureIndex];
+                        outData[index + 1] = wallTexture->data[textureIndex + 1];
+                        outData[index + 2] = wallTexture->data[textureIndex+ 2];
+                    }
                 }
                 else
                 {
@@ -341,26 +356,32 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
                                                    LERP(portal1FirstRow, portal2FirstRow, drawRate));
                         float rayY = screenDist;
                         float rayX = (col / (static_cast<float>(width)) - 0.5f) * ratio;
-                        float tmpX, tmpY;
-                        if (linesIntersection(x1, y1, x2, y2, 0, 0, rayX * 1000.f, rayY * 1000.f, tmpX, tmpY))
+                        float tempT;
+                        if (col == realFirstCol)
                         {
-                            tmpX -= x1;
-                            tmpY -= y1;
-                            for (size_t row = newRealFirstRow; row < portalFirstRow; ++row)
-                            {
-                                // Draw portal top wall
-                                int textureY = (row - wallVirtualFirstRow) / static_cast<float>(wallVirtualLastRow -
-                                    wallVirtualFirstRow) * wallTexture->height;
-                                float partialLength = sqrt(tmpX * tmpX + tmpY * tmpY);
-                                int textureX = abs(static_cast<int>((startOffset + partialLength) * wallTexture->width))
-                                    % wallTexture->width;
-                                outData[(col + row * width) * 3] = wallTexture->data[(textureX + textureY * wallTexture
-                                    ->width) * 3];
-                                outData[(col + row * width) * 3 + 1] = wallTexture->data[(textureX + textureY *
-                                    wallTexture->width) * 3 + 1];
-                                outData[(col + row * width) * 3 + 2] = wallTexture->data[(textureX + textureY *
-                                    wallTexture->width) * 3 + 2];
-                            }
+                            tempT = 0;
+                        }
+                        else if (col == realLastCol - 1)
+                        {
+                            tempT = 1;
+                        }
+                        else
+                        {
+                            tempT = linesIntersection(unclippedX1, unclippedY1, unclippedX2, unclippedY2, 0, 0,
+                                                      rayX * 1000.f, rayY * 1000.f);
+                        }
+                        int textureX = abs(static_cast<int>(tempT * wallTexture->width)) %
+                            wallTexture->width;
+                        for (int row = newRealFirstRow; row < portalFirstRow; ++row)
+                        {
+                            // Draw portal top wall
+                            int textureY = (row - wallVirtualFirstRow) / static_cast<float>(wallVirtualLastRow -
+                                wallVirtualFirstRow) * wallTexture->height;
+                            const int index = (col + row * width) * 3;
+                            const int textureIndex = (textureX + textureY * wallTexture->width) * 3;
+                            outData[index] = wallTexture->data[textureIndex];
+                            outData[index + 1] = wallTexture->data[textureIndex + 1];
+                            outData[index + 2] = wallTexture->data[textureIndex + 2];
                         }
                         columnData[col].firstRow = CLAMP(newRealFirstRow, static_cast<int>(height), portalFirstRow);
                     }
@@ -376,25 +397,31 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
                                                   LERP(portal1LastRow, portal2LastRow, drawRate));
                         float rayY = screenDist;
                         float rayX = (col / (static_cast<float>(width)) - 0.5f) * ratio;
-                        float tmpX, tmpY;
-                        if (linesIntersection(x1, y1, x2, y2, 0, 0, rayX * 1000.f, rayY * 1000.f, tmpX, tmpY))
+                        float tempT;
+                        if (col == realFirstCol)
                         {
-                            tmpX -= x1;
-                            tmpY -= y1;
-                            for (size_t row = portalLastRow; row < newRealLastRow; ++row)
-                            {
-                                int textureY = (row - wallVirtualFirstRow) / static_cast<float>(wallVirtualLastRow -
-                                    wallVirtualFirstRow) * wallTexture->height;
-                                float partialLength = sqrt(tmpX * tmpX + tmpY * tmpY);
-                                int textureX = abs(static_cast<int>((startOffset + partialLength) * wallTexture->width))
-                                    % wallTexture->width;
-                                outData[(col + row * width) * 3] = wallTexture->data[(textureX + textureY * wallTexture
-                                    ->width) * 3];
-                                outData[(col + row * width) * 3 + 1] = wallTexture->data[(textureX + textureY *
-                                    wallTexture->width) * 3 + 1];
-                                outData[(col + row * width) * 3 + 2] = wallTexture->data[(textureX + textureY *
-                                    wallTexture->width) * 3 + 2];
-                            }
+                            tempT = 0;
+                        }
+                        else if (col == realLastCol - 1)
+                        {
+                            tempT = 1;
+                        }
+                        else
+                        {
+                            tempT = linesIntersection(unclippedX1, unclippedY1, unclippedX2, unclippedY2, 0, 0,
+                                                      rayX * 1000.f, rayY * 1000.f);
+                        }
+                        int textureX = abs(static_cast<int>(tempT * wallTexture->width)) %
+                            wallTexture->width;
+                        for (int row = portalLastRow; row < newRealLastRow; ++row)
+                        {
+                            int textureY = (row - wallVirtualFirstRow) / static_cast<float>(wallVirtualLastRow -
+                                wallVirtualFirstRow) * wallTexture->height;
+                            const int index = (col + row * width) * 3;
+                            const int textureIndex = (textureX + textureY * wallTexture->width) * 3;
+                            outData[index] = wallTexture->data[textureIndex];
+                            outData[index + 1] = wallTexture->data[textureIndex + 1];
+                            outData[index + 2] = wallTexture->data[textureIndex + 2];
                         }
                         columnData[col].lastRow = CLAMP(0, newRealLastRow, portalLastRow);
                     }
@@ -408,5 +435,3 @@ void WorldRenderer::Render(const size_t width, const size_t height, unsigned cha
     }
     delete[] columnData;
 }
-
-
