@@ -5,6 +5,9 @@
 
 #include "InputManager.h"
 
+#define RENDERHEIGHT 150*4
+#define RENDERWIDTH 250*4
+
 int GameApp::Run()
 {
     float lastFrame = 0.0f;
@@ -24,9 +27,6 @@ int GameApp::Run()
     window.terminate();
     return 0;
 }
-
-#define RENDERHEIGHT 150
-#define RENDERWIDTH 250
 
 void GameApp::Init()
 {

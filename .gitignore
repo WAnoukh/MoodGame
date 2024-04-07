@@ -7,6 +7,7 @@ riderModule.iml
 /.idea/
 *.sln
 *.vcxproj
+*.vcxproj.user
 *.vcxproj.filters
 *.vcxproj.FileListAbsolute.txt
 *.obj
@@ -18,3 +19,5 @@ riderModule.iml
 *.pdb
 *.idb
 *.lastbuildstate
+.vs/Mood/v17
+MoodGame/x64
