@@ -8,7 +8,7 @@ class WorldRenderer
 public:
     WorldRenderer(World& worldToRender): world(&worldToRender) {}
 
-    void Render(const int width, const int height, unsigned char* outData);
+    void Render(int width, int height, unsigned char* outData);
 
     float GetCamX() const { return camX; }
     float GetCamY() const { return camY; }

@@ -7,6 +7,7 @@
 #include "../src/World/World.h"
 #include "../src/World/WorldReader.h"
 #include "GLTexture.h"
+#include "../src/World/MapRenderer.h"
 
 class GameApp
 {
@@ -48,5 +49,6 @@ private:
     WorldReader reader = WorldReader(world, "../res/DefaultMap.map");
     //WorldReader reader = WorldReader(world, "../res/wall.map");
     WorldRenderer worldRenderer = WorldRenderer(world);
+    MapRenderer mapRenderer = MapRenderer(world);
     GLTexture shownTexture;
 };

@@ -60,7 +60,7 @@ std::vector<Col> sectorColor = {
     Col(0x00, 0xff, 0xff), Col(0xff, 0xff, 0xff), Col(0x00, 0x00, 0x00)
 };
 
-void WorldRenderer::Render(const int width, const int height, unsigned char* outData)
+void WorldRenderer::Render(int width, int height, unsigned char* outData)
 {
     const int verticalOffset = camVerticalAngle;
     const float ratio = static_cast<float>(width) / static_cast<float>(height);

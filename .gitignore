@@ -21,3 +21,5 @@ riderModule.iml
 *.lastbuildstate
 .vs/Mood/v17
 MoodGame/x64
+MMEditor/x64
+*.sln

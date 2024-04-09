@@ -26,6 +26,8 @@ public:
     size_t GetSectorAtPos(float x, float y) const;
     Sector* GetSector(size_t index) const;
     Wall* GetWall(size_t index) const;
+    size_t GetSectorsCount() const;
+    size_t GetWallsCount() const;
 private:
     Sector* sectors = nullptr;
     Wall* walls = nullptr;

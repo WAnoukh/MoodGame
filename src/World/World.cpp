@@ -75,3 +75,13 @@ Wall* World::GetWall(size_t index) const
 {
     return &walls[index];
 }
+
+size_t World::GetSectorsCount() const
+{
+    return numSectors;
+}
+
+size_t World::GetWallsCount() const
+{
+    return numWalls;
+}
