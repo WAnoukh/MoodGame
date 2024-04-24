@@ -9,6 +9,13 @@ public:
 
     void RenderWalls(int width, int height, unsigned char* outData);
     void WorldToScreen(float x, float y, float& outX, float& outY, int width, int height);
+    void SetVerticalSize(float size);
+    void SetCamera(float x, float y, float angle);
+    void SetCameraX(float x);
+    void SetCameraY(float y);
+    void SetCameraAngle(float angle);
+
+    float GetCamVerticalSize() const;
 
 private:
     World* world = nullptr;

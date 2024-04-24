@@ -30,7 +30,7 @@ void TextureDrawing::DrawLine(int x1, int y1, int x2, int y2, unsigned char* dat
             }
             if (y >= height || x >= width)
             {
-                break;
+                continue;
             }
             DrawPixel(x, y, data, width, r, g, b);
         }
@@ -61,7 +61,7 @@ void TextureDrawing::DrawLine(int x1, int y1, int x2, int y2, unsigned char* dat
             }
             if (y >= height || x >= width)
             {
-                break;
+                continue;
             }
             DrawPixel(x, y, data, width, r, g, b);
         }

@@ -34,3 +34,35 @@ void MapRenderer::WorldToScreen(float x, float y, float& outX, float& outY, int 
     outX = ((cX * cos(camAngle) - cY * sin(camAngle)) * ratio / camVerticalSize + 0.5f) * width;
     outY = (0.5f - (cX * sin(camAngle) + cY * cos(camAngle)) / camVerticalSize) * height;
 }
+
+void MapRenderer::SetVerticalSize(float size)
+{
+    camVerticalSize = size;
+}
+
+void MapRenderer::SetCamera(float x, float y, float angle)
+{
+    SetCameraX(x);
+    SetCameraY(y);
+    SetCameraAngle(angle);
+}
+
+void MapRenderer::SetCameraX(float x)
+{
+    camX = x;
+}
+
+void MapRenderer::SetCameraY(float y)
+{
+    camY = y;
+}
+
+void MapRenderer::SetCameraAngle(float angle)
+{
+    camAngle = angle;
+}
+
+float MapRenderer::GetCamVerticalSize() const
+{
+    return camVerticalSize;
+}

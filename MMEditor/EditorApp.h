@@ -9,7 +9,7 @@
 #include "../WindowMaker/GLTexture.h"
 #include "../src/World/MapRenderer.h"
 
-class GameApp
+class EditorApp
 {
 public:
     
@@ -19,10 +19,12 @@ public:
     void Tick(float deltaTime);
 
     void Render();
+
+    void RenderMenu();
     
     float GetFps();
     
-    static GameApp& GetInstance();
+    static EditorApp& GetInstance();
 
     void AskForLayoutRefresh();
 
@@ -39,7 +41,7 @@ public:
 
     void BindInput();
 private:
-    inline static GameApp* instance = nullptr;
+    inline static EditorApp* instance = nullptr;
     GameWindow window = GameWindow();
 
     float lastDeltaTimes[200] = {0.0f};
@@ -47,8 +49,15 @@ private:
 
     World world;
     WorldReader reader = WorldReader(world, "../res/DefaultMap.map");
-    //WorldReader reader = WorldReader(world, "../res/wall.map");
-    WorldRenderer worldRenderer = WorldRenderer(world);
     MapRenderer mapRenderer = MapRenderer(world);
     GLTexture shownTexture;
+
+    float zoom = 10.0f;
+    float xOffset = 0;
+    float yOffset = 0;
+
+    bool panning = false;
+    double lastPanX = 0.0;
+    double lastPanY = 0.0;
+    
 };

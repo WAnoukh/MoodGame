@@ -24,9 +24,7 @@ public:
     int init();
 
 	void RenderScreen() const;
-
 	void PreRender() const;
-
 	void PostRender() const;
 
 	void terminate() const;
@@ -34,16 +32,16 @@ public:
     bool shouldClose() const { return glfwWindowShouldClose(window); }
 
 	void BindframebufferSizeEvent(GLFWframebuffersizefun framebuffer_size_callback);
-
 	void BindScrollCallBackEvent(GLFWscrollfun scroll_callback);
-
 	void BindMouseButtonCallBackEvent(GLFWmousebuttonfun mouse_button_callback);
-
 	void BindMousePositionCallBackEvent(GLFWcursorposfun mouse_position_callback);
-
 	void BindKeyboardKeyCallBackEvent(GLFWkeyfun key_callback);
 
 	void SetDisplayedTexture(unsigned int texture);
+
+	void SetScreenSize(size_t width, size_t height);
+
+	void GetScreenSize(size_t& width, size_t& height) const;
 
 private:
     GLFWwindow* window = nullptr;
@@ -51,7 +49,7 @@ private:
 	size_t screen_height = 600;
 	unsigned int VBO, VAO, EBO;
 
-	Shader planeShader = Shader("Plane.vert", "Plane.frag");
+	Shader planeShader = Shader("../WindowMaker/Plane.vert", "../WindowMaker/Plane.frag");
 	unsigned int displayedTextureId = 0;
 };
 

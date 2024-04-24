@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-#include "InputManager.h"
+#include "../WindowMaker/WindowInput.h"
 #include "../src/Texture/TextureDrawing.h"
 
 #define PLAYERRADIUS 0.1f
@@ -52,7 +52,7 @@ void GameApp::Tick(float deltaTime)
     lastDeltaTimes[lastDeltaTimesIndex] = deltaTime;
     const std::string title = "FPS : " + std::to_string(static_cast<int>(GetFps()));
     glfwSetWindowTitle(window.getGLFWwindow(), title.c_str());
-    InputManager& im = InputManager::GetInstance();
+    WindowInput& im = WindowInput::GetInstance();
     float playerXInput = im.IsKeyPressed(GLFW_KEY_W) - im.IsKeyPressed(GLFW_KEY_S);
     float playerYInput = im.IsKeyPressed(GLFW_KEY_D) - im.IsKeyPressed(GLFW_KEY_A);
     float playerStrafe = - im.IsKeyPressed(GLFW_KEY_Q) + im.IsKeyPressed(GLFW_KEY_E);
@@ -175,7 +175,7 @@ void GameApp::MousePositionCallBackEvent(GLFWwindow* window, bool guiWantToCaptu
 void GameApp::KeyboardKeyCallBackEvent(GLFWwindow* window, bool guiWantToCapture, int key, int scancode, int action,
     int mods)
 {
-    InputManager::GetInstance().KeyboardKeyCallBackEvent(key, scancode,action);
+    WindowInput::GetInstance().KeyboardKeyCallBackEvent(key, scancode,action);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){

@@ -1,15 +1,14 @@
 ﻿#pragma once
 #include <list>
-#include <map>
 
-class InputManager
+class WindowInput
 {
 public:
-    static InputManager& GetInstance();
+    static WindowInput& GetInstance();
     
     void KeyboardKeyCallBackEvent(int key, int scancode, int action);
     bool IsKeyPressed(int key) const;
 private:
-    std::list<int> pressedKeys;
-    inline static InputManager* instance = nullptr;
+    std::list<int> downKeys;
+    static WindowInput* instance ;
 };

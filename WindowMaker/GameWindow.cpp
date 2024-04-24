@@ -126,3 +126,16 @@ void GameWindow::SetDisplayedTexture(unsigned int texture)
 {
     displayedTextureId = texture;
 }
+
+void GameWindow::SetScreenSize(size_t width, size_t height)
+{
+    glViewport(0, 0, width, height);
+    screen_width = width;
+    screen_height = height;
+}
+
+void GameWindow::GetScreenSize(size_t& width, size_t& height) const
+{
+    width = screen_width;
+    height = screen_height;
+}

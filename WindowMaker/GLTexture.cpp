@@ -100,6 +100,19 @@ glm::vec2 GLTexture::GetSize() const
     return glm::vec2(width, height);
 }
 
+void GLTexture::Fill(unsigned char r, unsigned char g, unsigned char b) const
+{
+    for (int row = 0; row < width; ++row)
+    {
+        for (int col = 0; col < height; ++col)
+        {
+            data[(row + col * width) * 3] = 0x00;
+            data[(row + col * width) * 3 + 1] = 0x00;
+            data[(row + col * width) * 3 + 2] = 0x00;
+        }
+    }
+}
+
 void GLTexture::SetTextureData(int inWidth, int inHeight, unsigned char* inData)
 {
     width = inWidth;

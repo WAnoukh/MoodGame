@@ -29,6 +29,8 @@ public:
     int GetWidth() const { return width; }
     int GetHeight() const { return height; }
 
+    void Fill(unsigned char r, unsigned char g, unsigned char b) const;
+
     void SetTextureData(int inWidth, int inHeight, unsigned char* inData);
 
     unsigned char* GetTextureData();
