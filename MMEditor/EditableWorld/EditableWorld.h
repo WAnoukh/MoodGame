@@ -1,8 +1,9 @@
 #pragma once
-#include <list>
+#include <vector>
 
 struct EditableWorld
 {
+    EditableWorld() = default;
     struct Corner
     {
         float x;
@@ -13,8 +14,11 @@ struct EditableWorld
     {
         float ceil = 1.0f;
         float floor = 0.0f;
-        std::list<Corner*> corners;
+        std::vector<int> cornersIndexes;
     };
-    std::list<Room> rooms;
-    std::list<Corner> corners;
+    EditableWorld(EditableWorld const&) = delete;
+    EditableWorld& operator=(EditableWorld const&) = delete;
+    
+    std::vector<Room> rooms;
+    std::vector<Corner> corners;
 };

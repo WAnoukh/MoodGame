@@ -1,14 +1,15 @@
 #pragma once
+#include "EditableWorld.h"
 
-class World;
-
-class MapRenderer
+class WorldEditorRenderer
 {
 public:
-    MapRenderer(World& worldToRender): world(&worldToRender) {}
-
+    WorldEditorRenderer(EditableWorld& world) : world(&world) {};
+    
     void RenderWalls(int width, int height, unsigned char* outData);
     void WorldToView(float x, float y, float& outX, float& outY, int width, int height);
+    void ViewToWorld(float x, float y, float& outX, float& outY, int width, int height);
+    void DeltaViewToWorld(float dx, float dy, float& outDx, float& outDy, int width, int height);
     void SetVerticalSize(float size);
     void SetCamera(float x, float y, float angle);
     void SetCameraX(float x);
@@ -16,9 +17,8 @@ public:
     void SetCameraAngle(float angle);
 
     float GetCamVerticalSize() const;
-
 private:
-    World* world = nullptr;
+    EditableWorld* world;
     float camX = 3;
     float camY = 3;
     float camAngle = 0;

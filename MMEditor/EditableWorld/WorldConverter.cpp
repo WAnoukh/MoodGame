@@ -6,35 +6,28 @@
 #include <tuple>
 using namespace std;
 
-EditableWorld WorldConverter::ConvertWorld(World* world)
+void WorldConverter::ConvertWorld(EditableWorld& editableWorld, World& world)
 {
-    EditableWorld editableWorld;
-    map<tuple<float, float>, EditableWorld::Corner> cornersMap;
+    map<tuple<float, float>, int> cornersMap;
     size_t sectorIndex;
-    for (sectorIndex = 0; sectorIndex < world->GetSectorsCount(); ++sectorIndex)
+    for (sectorIndex = 1; sectorIndex <= world.GetSectorsCount(); ++sectorIndex)
     {
-        Sector& sector = *world->GetSector(sectorIndex);
+        Sector& sector = *world.GetSector(sectorIndex);
         editableWorld.rooms.emplace_back();
         EditableWorld::Room& room = editableWorld.rooms.back();
         room.ceil = sector.ceil;
         room.floor = sector.floor;
-        for (size_t wallIndex = 0; wallIndex < sector.numWalls; ++wallIndex)
+        for (size_t wallIndex = sector.firstWall; wallIndex < sector.firstWall + sector.numWalls; ++wallIndex)
         {
-            Wall& wall = *world->GetWall(sector.firstWall + wallIndex);
-            auto addNode = [&cornersMap,&room](float x, float y)
+            Wall& wall = *world.GetWall(wallIndex);
+            tuple c1Key(wall.x1, wall.y1);
+            if(!cornersMap.contains(c1Key))
             {
-                tuple<float, float> c1Key(x, y);
-                if(!cornersMap.contains(c1Key))
-                {
-                    EditableWorld::Corner corner;
-                    corner.x = x;
-                    corner.y = y;
-                    cornersMap[c1Key] = corner;
-                    room.corners.push_back(&cornersMap[c1Key]);
-                }
-            };
-            addNode(wall.x1, wall.y1);
-            addNode(wall.x2, wall.y2);
+                editableWorld.corners.push_back({wall.x1,wall.y1});
+                EditableWorld::Corner& corner = editableWorld.corners.back();
+                cornersMap[c1Key] = editableWorld.corners.size() - 1;
+            }
+            room.cornersIndexes.push_back(cornersMap[c1Key]);
         }
     }
 }

@@ -9,6 +9,7 @@
 
 #include "../WindowMaker/WindowInput.h"
 #include "../src/Texture/TextureDrawing.h"
+#include "EditableWorld/WorldConverter.h"
 
 #define PLAYERRADIUS 0.1f
 
@@ -51,29 +52,47 @@ void EditorApp::Init()
     glEnable(GL_DEPTH_TEST);
     
     reader.Load();
+    WorldConverter::ConvertWorld(editableWorld, world);
     shownTexture.CreateBlankTexture(RENDERWIDTH,RENDERHEIGHT, GL_RGB);
     window.SetDisplayedTexture(shownTexture.GetTextureId());
-
+    
     BindInput();
+    glfwGetCursorPos(window.getGLFWwindow(), &lastMouseX, &lastMouseY);
 }
 
 void EditorApp::Tick(float deltaTime)
 {
+    // Get mouse displacement
+    double mouseX, mouseY;
+    glfwGetCursorPos(window.getGLFWwindow(), &mouseX, &mouseY);
+    mouseDeltaX = mouseX - lastMouseX;
+    mouseDeltaY = mouseY - lastMouseY;
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+    
+    // Update editor zoom
     mapRenderer.SetVerticalSize(zoom);
+    worldEditorRenderer.SetVerticalSize(zoom);
+
+    // Update editor panning
     if (panning)
     {
         size_t screenWidth, screenHeight;
         window.GetScreenSize(screenWidth, screenHeight);
-        double xpos, ypos;
-        glfwGetCursorPos(window.getGLFWwindow(), &xpos, &ypos);
-        xOffset -= (xpos - lastPanX) / (screenWidth);
-        yOffset += (ypos - lastPanY) / (screenHeight);
-        lastPanX = xpos;
-        lastPanY = ypos;
-        std::cout << "xOffset: " << xOffset << " yOffset: " << yOffset << std::endl;
+        xOffset -= (mouseDeltaX) / (screenWidth);
+        yOffset += (mouseDeltaY) / (screenHeight);
     }
     float camVerticalSize = mapRenderer.GetCamVerticalSize();
     mapRenderer.SetCamera(xOffset*camVerticalSize * RENDERRATIO, yOffset*camVerticalSize ,0.0f);
+    worldEditorRenderer.SetCamera(xOffset*camVerticalSize * RENDERRATIO, yOffset*camVerticalSize ,0.0f);
+
+    // Move selected corner
+    if (selectedCorner != -1)
+    {
+        float worldX, worldY;
+        DeltaWindowToWorld(mouseDeltaX, mouseDeltaY, worldX, worldY);
+        worldEditor.MoveCorner(selectedCorner, worldX, worldY);
+    }
 }
 
 void EditorApp::Render()
@@ -86,7 +105,8 @@ void EditorApp::Render()
     //ImGui::ShowDemoWindow();
     unsigned char* renderData = shownTexture.GetTextureData();
     shownTexture.Fill(0,0,0);
-    mapRenderer.RenderWalls(shownTexture.GetWidth(), shownTexture.GetHeight(), renderData);
+    //mapRenderer.RenderWalls(shownTexture.GetWidth(), shownTexture.GetHeight(), renderData);
+    worldEditorRenderer.RenderWalls(shownTexture.GetWidth(), shownTexture.GetHeight(), renderData);
     shownTexture.SendDataToOpenGl();
     
     window.RenderScreen();
@@ -148,6 +168,7 @@ EditorApp& EditorApp::GetInstance()
 {
     if(instance == nullptr)
     {
+        EditorApp lol;
         instance = new EditorApp();
     }
     return *instance;
@@ -179,12 +200,33 @@ void EditorApp::MouseButtonCallBackEvent(GLFWwindow* window, bool guiWantToCaptu
             panning = true;
             double xpos, ypos;
             glfwGetCursorPos(window, &xpos, &ypos);
-            lastPanX = xpos;
-            lastPanY = ypos;
         }
         else if (action == GLFW_RELEASE)
         {
             panning = false;
+        }
+    }
+    if(button == GLFW_MOUSE_BUTTON_RIGHT)
+    {
+        if(action == GLFW_PRESS)
+        {
+            if (!selectedCorner != -1)
+            {
+                double mouseX, mouseY;
+                float worldX, worldY;
+                glfwGetCursorPos(window, &mouseX, &mouseY);
+                WindowToWorld(mouseX, mouseY, worldX, worldY);
+                int result = worldEditor.GetNearestCorner(worldX, worldY, 100);
+                if (result != -1)
+                {
+                    selectedCorner = result;
+                    std::cout << "Selected corner: " << selectedCorner << std::endl;
+                }
+            }
+        }else if (action == GLFW_RELEASE)
+        {
+            std::cout << "Released" << std::endl;
+            selectedCorner = -1;
         }
     }
 }
@@ -238,4 +280,22 @@ void EditorApp::BindInput()
     window.BindMouseButtonCallBackEvent(mouse_button_callback);
     window.BindMousePositionCallBackEvent(mouse_position_callback);
     window.BindKeyboardKeyCallBackEvent(key_callback);
+}
+
+void EditorApp::WindowToWorld(float x, float y, float& outX, float& outY)
+{
+    size_t ww, wh;
+    window.GetScreenSize(ww, wh);
+    x *= static_cast<float>(RENDERWIDTH)/ww;
+    y *= static_cast<float>(RENDERHEIGHT)/wh;
+    worldEditorRenderer.ViewToWorld(x, y, outX, outY, RENDERWIDTH, RENDERHEIGHT);
+}
+
+void EditorApp::DeltaWindowToWorld(float dx, float dy, float& outDx, float& outDy)
+{
+    size_t ww, wh;
+    window.GetScreenSize(ww, wh);
+    dx *= static_cast<float>(RENDERWIDTH)/ww;
+    dy *= -static_cast<float>(RENDERHEIGHT)/wh;
+    worldEditorRenderer.DeltaViewToWorld(dx, dy, outDx, outDy, RENDERWIDTH, RENDERHEIGHT);
 }

@@ -118,7 +118,7 @@ void GameApp::Render()
     //Draw player
     float playerX = worldRenderer.GetCamX();
     float playerY = worldRenderer.GetCamY();
-    mapRenderer.WorldToScreen(playerX, playerY, playerX, playerY, shownTexture.GetWidth(), shownTexture.GetHeight());
+    mapRenderer.WorldToView(playerX, playerY, playerX, playerY, shownTexture.GetWidth(), shownTexture.GetHeight());
     float playerDirX = playerX + sin(-worldRenderer.GetCamAngle()) * 10;
     float playerDirY = playerY - cos(-worldRenderer.GetCamAngle()) * 10;
     TextureDrawing::DrawCircle(playerX, playerY, 5, renderData, shownTexture.GetWidth(), shownTexture.GetHeight(), 0, 0, 0xFF);
