@@ -141,3 +141,34 @@ int WorldReader::Load()
     file.close();
     return returnValue;
 }
+
+int WorldReader::Save(const char* filePath)
+{
+    std::ofstream outFile(filePath);
+    if (!outFile.is_open())
+    {
+        std::cerr << "Could not open file " << filePath << std::endl;
+        return -1;
+    }
+    outFile << "[SECTOR]\n";
+    outFile << world->GetSectorsCount() << "\n";
+    for (size_t i = 1; i <= world->GetSectorsCount(); ++i)
+    {
+        Sector* sector = world->GetSector(i);
+        outFile << i << " " << sector->firstWall << " " << sector->numWalls << " " << sector->floor << " " << sector->ceil << "\n";
+    }
+    outFile << "[WALL]\n";
+    outFile << world->GetWallsCount() << "\n";
+    for (size_t i = 0; i < world->GetWallsCount(); ++i)
+    {
+        Wall* wall = world->GetWall(i);
+        outFile << wall->x2 << " " << wall->y2 << " " << wall->x1 << " " << wall->y1 << " " << wall->portal << "\n";
+    }
+    outFile.close();
+    return 0;
+}
+
+void WorldReader::SetPath(const char* filePath)
+{
+    path = filePath;
+}

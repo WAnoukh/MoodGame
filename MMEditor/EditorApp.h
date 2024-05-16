@@ -52,7 +52,7 @@ private:
 
     World world;
     //WorldReader reader = WorldReader(world, "../res/DefaultMap.map");
-    WorldReader reader = WorldReader(world, "../res/cube.map");
+    WorldReader reader = WorldReader(world, "../res/2cube.map");
     EditableWorld editableWorld;
     MapRenderer mapRenderer{world};
     WorldEditor worldEditor{&editableWorld};
@@ -70,6 +70,8 @@ private:
 
     bool panning = false;
     int selectedCorner = -1;
+
+    char openPath[256] = "../res/test1.map";
 
     void WindowToWorld(float x, float y, float& outX, float& outY);
     void DeltaWindowToWorld(float dx, float dy, float& outDx, float& outDy);

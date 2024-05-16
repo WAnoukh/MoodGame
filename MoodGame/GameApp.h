@@ -46,7 +46,7 @@ private:
     int lastDeltaTimesIndex = 0;
 
     World world;
-    WorldReader reader = WorldReader(world, "../res/DefaultMap.map");
+    WorldReader reader = WorldReader(world, "../res/test1.map");
     //WorldReader reader = WorldReader(world, "../res/wall.map");
     WorldRenderer worldRenderer = WorldRenderer(world);
     MapRenderer mapRenderer = MapRenderer(world);

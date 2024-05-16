@@ -4,9 +4,8 @@
 
 class World;
 
-class WorldConverter
+namespace WorldConverter
 {
-public:
-    static void ConvertWorld(EditableWorld& outEditableWorld, World& world);
-    
+    void ConvertWorld(EditableWorld& outEditableWorld, World& world);
+    void ConvertEditableWorld(World& outWorld, EditableWorld& editableWorld);
 };
