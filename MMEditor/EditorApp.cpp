@@ -206,6 +206,10 @@ void EditorApp::ScrollCallBackEvent(GLFWwindow* window, bool guiWantToCapture, d
 
 void EditorApp::MouseButtonCallBackEvent(GLFWwindow* window, bool guiWantToCapture, int button, int action, int mods)
 {
+    if(guiWantToCapture)
+    {
+        return;
+    }
     if (button == GLFW_MOUSE_BUTTON_LEFT)
     {
         if (action == GLFW_PRESS)
@@ -283,9 +287,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    //ImGuiIO& io = ImGui::GetIO();
-    //EditorApp::GetInstance().MouseButtonCallBackEvent(window, io.WantCaptureMouse, button, action, mods);
-    EditorApp::GetInstance().MouseButtonCallBackEvent(window, false, button, action, mods);
+    ImGuiIO& io = ImGui::GetIO();
+    EditorApp::GetInstance().MouseButtonCallBackEvent(window, io.WantCaptureMouse, button, action, mods);
 }
 
 void EditorApp::BindInput()
