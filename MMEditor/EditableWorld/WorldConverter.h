@@ -7,5 +7,5 @@ class World;
 namespace WorldConverter
 {
     void ConvertWorld(EditableWorld& outEditableWorld, World& world);
-    void ConvertEditableWorld(World& outWorld, EditableWorld& editableWorld);
+    void ConvertEditableWorld(World& outWorld, const EditableWorld& editableWorld);
 };
