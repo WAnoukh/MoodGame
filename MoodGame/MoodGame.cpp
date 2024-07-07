@@ -9,6 +9,13 @@
 int main(int argc, char* argv[])
 {
     GameApp& ga = GameApp::GetInstance();
-    ga.Init();
+    if (argc == 2)
+    {
+        std::string arg = argv[1];
+        ga.Init(argv[1]);
+    }else
+    {
+        ga.Init();
+    }
     return ga.Run();
 }

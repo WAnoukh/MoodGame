@@ -13,7 +13,7 @@ class GameApp
 {
 public:
     
-    void Init();
+    void Init(const char* startingMapPath = nullptr);
     int Run();
     
     void Tick(float deltaTime);

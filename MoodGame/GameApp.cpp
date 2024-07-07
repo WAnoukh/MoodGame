@@ -31,14 +31,17 @@ int GameApp::Run()
     return 0;
 }
 
-void GameApp::Init()
+void GameApp::Init(const char* startingMapPath)
 {
     if (window.init() == -1)
     {
         std::cerr << "Application : Window.init() Failed." << std::endl;
     }
     glEnable(GL_DEPTH_TEST);
-    
+    if (startingMapPath != nullptr)
+    {
+        reader = WorldReader(world, startingMapPath);
+    }
     reader.Load();
     shownTexture.CreateBlankTexture(RENDERWIDTH,RENDERHEIGHT, GL_RGB);
     window.SetDisplayedTexture(shownTexture.GetTextureId());

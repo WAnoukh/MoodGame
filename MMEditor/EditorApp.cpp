@@ -134,6 +134,12 @@ void EditorApp::RenderMenu()
                 WorldConverter::ConvertEditableWorld(world, editableWorld);
                 reader.Save("../res/test1.map");
             }
+            if (ImGui::MenuItem("Save and Run", NULL, false, p_open))
+            {
+                WorldConverter::ConvertEditableWorld(world, editableWorld);
+                reader.Save("../res/test1.map");
+                system("start ../x64/Debug/MoodGame.exe ../res/test1.map");
+            }
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
