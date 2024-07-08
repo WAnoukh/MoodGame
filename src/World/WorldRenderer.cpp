@@ -91,6 +91,7 @@ void WorldRenderer::Render(int width, int height, unsigned char* outData)
     {
         return;
     }
+    size_t lastSector = 0;
     struct QueueElement
     {
         size_t sectorIndex;
@@ -147,10 +148,11 @@ void WorldRenderer::Render(int width, int height, unsigned char* outData)
                 //wall is behind the camera
                 continue;
             }
+            
             float startOffset = 0;
             float endOffset = 0;
-            float angle1 = atan2(x1, y1);
-            float angle2 = atan2(x2, y2);
+            float angle1 = atan2(unclippedX1, unclippedY1);
+            float angle2 = atan2(unclippedX2, unclippedY2);
             {
                 float tmpX, tmpY;
                 if (linesIntersection(x1, y1, x2, y2, fflx, ffly, fnlx, fnly, tmpX, tmpY))
@@ -211,7 +213,7 @@ void WorldRenderer::Render(int width, int height, unsigned char* outData)
                 continue;
             }
 
-            if (wall->portal)
+            if (wall->portal && lastSector != wall->portal)
             {
                 if (realFirstCol < realLastCol)
                 {
@@ -432,6 +434,7 @@ void WorldRenderer::Render(int width, int height, unsigned char* outData)
                 }
             }
         }
+        lastSector = element.sectorIndex;
     }
     delete[] columnData;
 }

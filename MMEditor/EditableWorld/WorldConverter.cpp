@@ -45,50 +45,60 @@ void WorldConverter::ConvertEditableWorld(World& outWorld, const EditableWorld& 
     std::vector<Sector> sectors;
 
     auto rooms = editableWorld.rooms;
-    
+
+    bool concavityFounded;
     // Iterate over room to remove convexity
-    for (auto& room : rooms)
-    {
-        for(int i = 0; i < room.cornersIndexes.size(); ++i)
+    do {
+        concavityFounded = false;
+        for (auto& room : rooms)
         {
-            int c1 = room.cornersIndexes[i];
-            int i2 = (i + 1) % room.cornersIndexes.size();
-            int c2 = room.cornersIndexes[i2];
-            int i3 = (i + 2) % room.cornersIndexes.size();
-            int c3 = room.cornersIndexes[i3];
-            
-            float a = editableWorld.corners[c1].x - editableWorld.corners[c2].x;
-            float b = editableWorld.corners[c1].y - editableWorld.corners[c2].y;
-            float c = editableWorld.corners[c3].x - editableWorld.corners[c2].x;
-            float d = editableWorld.corners[c3].y - editableWorld.corners[c2].y;
-
-            float atanA = atan2(a, b);
-            float atanB = atan2(c, d);
-
-            float angle = atanA - atanB;
-            if (angle > M_PI)
+            for(int i = 0; i < room.cornersIndexes.size(); ++i)
             {
-                angle -= 2 * M_PI;
-            }
-            else if (angle < -M_PI)
-            {
-                angle += 2 * M_PI;
-            }
+                int c1 = room.cornersIndexes[i];
+                int i2 = (i + 1) % room.cornersIndexes.size();
+                int c2 = room.cornersIndexes[i2];
+                int i3 = (i + 2) % room.cornersIndexes.size();
+                int c3 = room.cornersIndexes[i3];
+                
+                float a = editableWorld.corners[c1].x - editableWorld.corners[c2].x;
+                float b = editableWorld.corners[c1].y - editableWorld.corners[c2].y;
+                float c = editableWorld.corners[c3].x - editableWorld.corners[c2].x;
+                float d = editableWorld.corners[c3].y - editableWorld.corners[c2].y;
 
-            if (angle > 0) // Convexity detected
-            {
-                std::vector<int> newCorners;
-                int j = i2;
-                while (j != i)
+                float atanA = atan2(a, b);
+                float atanB = atan2(c, d);
+
+                float angle = atanA - atanB;
+                if (angle > M_PI)
                 {
-                    newCorners.push_back(room.cornersIndexes[j]);
-                    j = (j + 1) % room.cornersIndexes.size();
+                    angle -= 2 * M_PI;
                 }
-                room.cornersIndexes = {room.cornersIndexes[(i-1)% room.cornersIndexes.size()], room.cornersIndexes[i], room.cornersIndexes[i2]};
-                rooms.emplace_back(room.ceil, room.floor, newCorners);
+                else if (angle < -M_PI)
+                {
+                    angle += 2 * M_PI;
+                }
+
+                if (angle > 0) // Convexity detected
+                {
+                    std::vector<int> newCorners;
+                    int j = i2;
+                    while (j != i)
+                    {
+                        newCorners.push_back(room.cornersIndexes[j]);
+                        j = (j + 1) % room.cornersIndexes.size();
+                    }
+                    room.cornersIndexes = {room.cornersIndexes[(i-1)% room.cornersIndexes.size()], room.cornersIndexes[i], room.cornersIndexes[i2]};
+                    rooms.emplace_back(room.ceil, room.floor, newCorners);
+                    concavityFounded = true;
+                    break;
+                }
+            }
+            if (concavityFounded)
+            {
+                break;
             }
         }
-    }
+    } while (concavityFounded);
     
     // Iterate over rooms to create sectors
     for (auto& room : rooms)
