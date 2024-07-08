@@ -72,6 +72,7 @@ private:
     int selectedCorner = -1;
 
     char openPath[256] = "../res/test1.map";
+    bool LayoutNeedRefresh = true;
 
     void WindowToWorld(float x, float y, float& outX, float& outY);
     void DeltaWindowToWorld(float dx, float dy, float& outDx, float& outDy);

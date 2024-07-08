@@ -6,6 +6,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "imgui_internal.h"
 
 #include "../WindowMaker/WindowInput.h"
 #include "../src/Texture/TextureDrawing.h"
@@ -25,6 +26,10 @@ int EditorApp::Run()
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(window.getGLFWwindow(), true);
     ImGui_ImplOpenGL3_Init("#version 330");
+    
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    
     // render loop
     // -----------
     while (!window.shouldClose())
@@ -117,8 +122,7 @@ void EditorApp::Render()
 
 void EditorApp::RenderMenu()
 {
-    ImGuiWindowFlags window_flags = 0;
-    window_flags |= ImGuiWindowFlags_MenuBar;
+
     bool openFileMenu = false;
     if (ImGui::BeginMainMenuBar())
     {
@@ -142,13 +146,30 @@ void EditorApp::RenderMenu()
             }
             ImGui::EndMenu();
         }
+        
         ImGui::EndMainMenuBar();
     }
 
+    ImGuiViewport* guiViewPort = ImGui::GetMainViewport();
+    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+    ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(guiViewPort,dockspace_flags | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoWindowMenuButton);
+
+    ImGui::Begin("Parameters", nullptr);
+    ImGui::End();
+
+    if(LayoutNeedRefresh)
+    {
+        ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
+        ImGui::DockBuilderSetNodeSize(dockspace_id, guiViewPort->Size);
+        auto dock_id_right = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.3f, nullptr, &dockspace_id);
+        ImGui::DockBuilderDockWindow("Parameters", dock_id_right);
+        LayoutNeedRefresh = false;
+    }	
     if (openFileMenu)
     {
         ImGui::OpenPopup("Open File");
     }
+
     // Always center this window when appearing
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -204,7 +225,7 @@ void EditorApp::framebufferSizeEvent(int width, int height)
 
 void EditorApp::ScrollCallBackEvent(GLFWwindow* window, bool guiWantToCapture, double xScroll, double ySroll)
 {
-    float zoomRate = (1 + ySroll * 0.1f);
+    float zoomRate = (1 - ySroll * 0.1f);
     zoom *= zoomRate;
     xOffset /= zoomRate;
     yOffset /= zoomRate;
