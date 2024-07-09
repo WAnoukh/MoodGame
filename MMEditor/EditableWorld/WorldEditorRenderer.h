@@ -7,15 +7,23 @@ public:
     WorldEditorRenderer(EditableWorld& world) : world(&world) {};
     
     void RenderWalls(int width, int height, unsigned char* outData);
-    void WorldToView(float x, float y, float& outX, float& outY, int width, int height);
-    void ViewToWorld(float x, float y, float& outX, float& outY, int width, int height);
-    void DeltaViewToWorld(float dx, float dy, float& outDx, float& outDy, int width, int height);
+    EditableWorld& GetWorld() { return *world; }
+    void WorldToView(float x, float y, float& outX, float& outY);
+    void ViewToWorld(float x, float y, float& outX, float& outY);
+    void VectorViewToWorld(float dx, float dy, float& outDx, float& outDy);
     void SetVerticalSize(float size);
     void SetCamera(float x, float y, float angle);
     void SetCameraX(float x);
     void SetCameraY(float y);
     void SetCameraAngle(float angle);
 
+    //Drawing methods
+    void NewFrame(int width, int height, unsigned char* outData);
+    void SetDrawingColor(unsigned char r, unsigned char g, unsigned char b);
+    void SetDrawingColor(const unsigned char* color);
+    void DrawWorldLine(float x1, float y1, float x2, float y2);
+    void DrawWorldPoint(float x, float y, float size = 3);
+    
     float GetCamVerticalSize() const;
 private:
     EditableWorld* world;
@@ -23,4 +31,10 @@ private:
     float camY = 3;
     float camAngle = 0;
     float camVerticalSize = 10;
+
+    int frameWidth = 0;
+    int frameHeight = 0;
+    unsigned char* frameData = nullptr;
+
+    unsigned char drawingColor[3] = { 255, 0, 0 };
 };

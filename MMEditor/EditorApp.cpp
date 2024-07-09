@@ -56,10 +56,10 @@ void EditorApp::Init()
     }
     glEnable(GL_DEPTH_TEST);
 
-    reader.Load();
-    WorldConverter::ConvertWorld(editableWorld, world);
+    
     shownTexture.CreateBlankTexture(RENDERWIDTH,RENDERHEIGHT, GL_RGB);
     window.SetDisplayedTexture(shownTexture.GetTextureId());
+    LoadWorld();
 
     BindInput();
     glfwGetCursorPos(window.getGLFWwindow(), &lastMouseX, &lastMouseY);
@@ -91,12 +91,17 @@ void EditorApp::Tick(float deltaTime)
     mapRenderer.SetCamera(xOffset * camVerticalSize * RENDERRATIO, yOffset * camVerticalSize, 0.0f);
     worldEditorRenderer.SetCamera(xOffset * camVerticalSize * RENDERRATIO, yOffset * camVerticalSize, 0.0f);
 
-    // Move selected corner
-    if (selectedCorner != -1)
+    float worldX, worldY;
+    WindowToWorld(lastMouseX, lastMouseY, worldX, worldY);
+    MapFeature* foundFeature = featureManager.FindSelectedFeature(worldEditorRenderer, worldX, worldY);
+    SetHoveredFeature(foundFeature);
+    
+    // Move selected Feature
+    if(selectedFeature != nullptr && dragging)
     {
         float worldX, worldY;
         DeltaWindowToWorld(mouseDeltaX, mouseDeltaY, worldX, worldY);
-        worldEditor.MoveCorner(selectedCorner, worldX, worldY);
+        selectedFeature->Drag(worldEditor, worldX, worldY);
     }
 }
 
@@ -107,17 +112,24 @@ void EditorApp::Render()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     RenderMenu();
-    //ImGui::ShowDemoWindow();
     unsigned char* renderData = shownTexture.GetTextureData();
     shownTexture.Fill(0, 0, 0);
-    //mapRenderer.RenderWalls(shownTexture.GetWidth(), shownTexture.GetHeight(), renderData);
-    worldEditorRenderer.RenderWalls(shownTexture.GetWidth(), shownTexture.GetHeight(), renderData);
+    worldEditorRenderer.NewFrame(shownTexture.GetWidth(), shownTexture.GetHeight(), renderData);
+    featureManager.Draw(worldEditorRenderer);
     shownTexture.SendDataToOpenGl();
 
     window.RenderScreen();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     window.PostRender();
+}
+
+void EditorApp::LoadWorld()
+{
+    reader.SetPath(openPath);
+    reader.Load();
+    WorldConverter::ConvertWorld(editableWorld, world);
+    featureManager.InitializeFromWorld(editableWorld);
 }
 
 void EditorApp::RenderMenu()
@@ -155,6 +167,10 @@ void EditorApp::RenderMenu()
     ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(guiViewPort,dockspace_flags | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoWindowMenuButton);
 
     ImGui::Begin("Parameters", nullptr);
+    if (selectedFeature != nullptr)
+    {
+        selectedFeature->RenderGui(editableWorld);
+    }
     ImGui::End();
 
     if(LayoutNeedRefresh)
@@ -180,9 +196,7 @@ void EditorApp::RenderMenu()
         ImGui::InputText("Path", openPath, 256);
         if (ImGui::Button("Load", ImVec2(120, 0)))
         {
-            reader.SetPath(openPath);
-            reader.Load();
-            WorldConverter::ConvertWorld(editableWorld, world);
+            LoadWorld();
             ImGui::CloseCurrentPopup();
         }
         ImGui::SetItemDefaultFocus();
@@ -254,24 +268,20 @@ void EditorApp::MouseButtonCallBackEvent(GLFWwindow* window, bool guiWantToCaptu
     {
         if (action == GLFW_PRESS)
         {
-            if (!selectedCorner != -1)
+            float worldX, worldY;
+            WindowToWorld(lastMouseX, lastMouseY, worldX, worldY);
+            MapFeature* foundFeature = featureManager.FindSelectedFeature(worldEditorRenderer, worldX, worldY);
+            if(foundFeature!=nullptr)
             {
-                double mouseX, mouseY;
-                float worldX, worldY;
-                glfwGetCursorPos(window, &mouseX, &mouseY);
-                WindowToWorld(mouseX, mouseY, worldX, worldY);
-                int result = worldEditor.GetNearestCorner(worldX, worldY, 100);
-                if (result != -1)
-                {
-                    selectedCorner = result;
-                    std::cout << "Selected corner: " << selectedCorner << std::endl;
-                }
+                dragging = true;
+                std::cout << "Pressed" << std::endl;
             }
+            SetSelectedFeature(foundFeature);
         }
         else if (action == GLFW_RELEASE)
         {
             std::cout << "Released" << std::endl;
-            selectedCorner = -1;
+            dragging = false;
         }
     }
 }
@@ -333,7 +343,7 @@ void EditorApp::WindowToWorld(float x, float y, float& outX, float& outY)
     window.GetScreenSize(ww, wh);
     x *= static_cast<float>(RENDERWIDTH) / ww;
     y *= static_cast<float>(RENDERHEIGHT) / wh;
-    worldEditorRenderer.ViewToWorld(x, y, outX, outY, RENDERWIDTH, RENDERHEIGHT);
+    worldEditorRenderer.ViewToWorld(x, y, outX, outY);
 }
 
 void EditorApp::DeltaWindowToWorld(float dx, float dy, float& outDx, float& outDy)
@@ -342,5 +352,27 @@ void EditorApp::DeltaWindowToWorld(float dx, float dy, float& outDx, float& outD
     window.GetScreenSize(ww, wh);
     dx *= static_cast<float>(RENDERWIDTH) / ww;
     dy *= -static_cast<float>(RENDERHEIGHT) / wh;
-    worldEditorRenderer.DeltaViewToWorld(dx, dy, outDx, outDy, RENDERWIDTH, RENDERHEIGHT);
+    worldEditorRenderer.VectorViewToWorld(dx, dy, outDx, outDy);
+}
+
+void EditorApp::SetHoveredFeature(MapFeature* feature)
+{
+    if(feature != nullptr && feature == selectedFeature)
+        return;
+    if (hoveredFeature != nullptr)
+        hoveredFeature->SetState(MapFeature::Normal);
+    hoveredFeature = feature;
+    if (hoveredFeature != nullptr)
+        hoveredFeature->SetState(MapFeature::Hovered);
+}
+
+void EditorApp::SetSelectedFeature(MapFeature* feature)
+{
+    if (selectedFeature != nullptr)
+        selectedFeature->SetState(MapFeature::Normal);
+    if(feature != nullptr && feature == hoveredFeature)
+        hoveredFeature = nullptr;
+    selectedFeature = feature;
+    if (selectedFeature != nullptr)
+        selectedFeature->SetState(MapFeature::Selected);
 }

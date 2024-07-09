@@ -3,11 +3,11 @@
 class WorldReader
 {
 public:
-    WorldReader(World& worldToLoad, const char* filePath);
+    WorldReader(World& worldToLoad);
     int Load();
     int Save(const char* filePath);
     void SetPath(const char* filePath);
 private:
     World* world;
-    const char* path;
+    const char* path = nullptr;
 };

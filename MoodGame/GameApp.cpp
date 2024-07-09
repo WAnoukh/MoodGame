@@ -40,7 +40,7 @@ void GameApp::Init(const char* startingMapPath)
     glEnable(GL_DEPTH_TEST);
     if (startingMapPath != nullptr)
     {
-        reader = WorldReader(world, startingMapPath);
+        reader.SetPath(startingMapPath);
     }
     reader.Load();
     shownTexture.CreateBlankTexture(RENDERWIDTH,RENDERHEIGHT, GL_RGB);

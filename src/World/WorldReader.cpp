@@ -5,13 +5,18 @@
 #include <sstream>
 #include <string>
 
-WorldReader::WorldReader(World& worldToLoad, const char* filePath): world(&worldToLoad), path(filePath)
+WorldReader::WorldReader(World& worldToLoad): world(&worldToLoad)
 {
     
 }
 
 int WorldReader::Load()
 {
+    if (path == nullptr)
+    {
+        std::cerr << "No path set for loading" << std::endl;
+        return -1;
+    }
     std::ifstream file(path);
     if (!file.is_open())
     {
