@@ -25,7 +25,7 @@ int WorldReader::Load()
     }
     int returnValue = 0;
     std::string line;
-    enum {NONE, SECTORS, SECTORSNUM, WALLS, WALLSNUM} section = NONE;
+    enum {NONE, SECTORS, SECTORSNUM, WALLS, WALLSNUM, PLAYERSPAWN} section = NONE;
     size_t numSectors = 0;
     size_t numWalls = 0;
     size_t currentSector = 0;
@@ -52,6 +52,9 @@ int WorldReader::Load()
                 else if (!line.compare("[WALL]"))
                 {
                     section = WALLSNUM;
+                }else if (!line.compare("[PLAYERSPAWN]"))
+                {
+                    section = PLAYERSPAWN;
                 }
                 break;
             case SECTORSNUM:
@@ -111,6 +114,19 @@ int WorldReader::Load()
                     }
                 }
             break;
+            case PLAYERSPAWN:
+                {
+                    std::istringstream iss(line);
+                    float x, y, orientation;
+                    if(!(iss >> x >> y >> orientation))
+                    {
+                        std::cerr << "Can't read player spawn from line" << std::endl;
+                        returnValue = -6;
+                        break;
+                    }
+                    world->SetPlayerSpawnPos(x, y, orientation);
+                    section = NONE;
+                }
         }
     }
     if (currentSector != numSectors)
@@ -169,6 +185,9 @@ int WorldReader::Save(const char* filePath)
         Wall* wall = world->GetWall(i);
         outFile << wall->x2 << " " << wall->y2 << " " << wall->x1 << " " << wall->y1 << " " << wall->portal << "\n";
     }
+    outFile << "[PLAYERSPAWN]\n";
+    auto [x, y, orientation] = world->GetPlayerSpawnPos();
+    outFile << x << " " << y << " " << orientation << "\n";
     outFile.close();
     return 0;
 }

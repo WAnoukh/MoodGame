@@ -40,9 +40,9 @@ void GameApp::Init(const char* startingMapPath)
     glEnable(GL_DEPTH_TEST);
     if (startingMapPath != nullptr)
     {
-        reader.SetPath(startingMapPath);
+        LoadLevel(startingMapPath);
     }
-    reader.Load();
+    
     shownTexture.CreateBlankTexture(RENDERWIDTH,RENDERHEIGHT, GL_RGB);
     window.SetDisplayedTexture(shownTexture.GetTextureId());
 
@@ -220,4 +220,14 @@ void GameApp::BindInput()
     window.BindMouseButtonCallBackEvent(mouse_button_callback);
     window.BindMousePositionCallBackEvent(mouse_position_callback);
     window.BindKeyboardKeyCallBackEvent(key_callback);
+}
+
+void GameApp::LoadLevel(const char* path)
+{
+    reader.SetPath(path);
+    reader.Load();
+    auto [x, y, orientation] = world.GetPlayerSpawnPos();
+    worldRenderer.SetCamX(x);
+    worldRenderer.SetCamY(y);
+    worldRenderer.SetCamAngle(orientation);
 }

@@ -21,4 +21,5 @@ struct EditableWorld
     
     std::vector<Room> rooms;
     std::vector<Corner> corners;
+    std::tuple<float, float, float> playerSpawnPos = {0.0f, 0.0f, 0.0f};
 };

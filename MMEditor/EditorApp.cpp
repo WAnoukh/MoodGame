@@ -363,10 +363,10 @@ void EditorApp::DeltaWindowToWorld(float dx, float dy, float& outDx, float& outD
 
 void EditorApp::SetHoveredFeature(MapFeature* feature)
 {
-    if(feature != nullptr && feature == selectedFeature)
-        return;
     if (hoveredFeature != nullptr)
         hoveredFeature->SetState(MapFeature::Normal);
+    if(feature != nullptr && feature == selectedFeature)
+        return;
     hoveredFeature = feature;
     if (hoveredFeature != nullptr)
         hoveredFeature->SetState(MapFeature::Hovered);

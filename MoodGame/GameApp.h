@@ -38,6 +38,8 @@ public:
                                   int mods);
 
     void BindInput();
+
+    void LoadLevel(const char* path);
 private:
     inline static GameApp* instance = nullptr;
     GameWindow window = GameWindow();

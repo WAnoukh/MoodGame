@@ -10,6 +10,7 @@
 #include "Features/RoomFeature.h"
 #include "Features/WallFeature.h"
 #include "MapFeature.h"
+#include "Features/PlayerFeature.h"
 
 void FeatureManager::InitializeFromWorld(EditableWorld& world)
 {
@@ -45,6 +46,8 @@ void FeatureManager::InitializeFromWorld(EditableWorld& world)
             }
         }
     }
+    PlayerFeature playerFeature;
+    features.push_back(std::make_shared<PlayerFeature>(playerFeature));
     SortFeatures();
 }
 

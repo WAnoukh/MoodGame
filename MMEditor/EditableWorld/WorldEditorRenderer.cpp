@@ -106,6 +106,11 @@ void WorldEditorRenderer::DrawWorldLine(float x1, float y1, float x2, float y2)
     TextureDrawing::DrawLine(newX1, newY1, newX2, newY2, frameData, frameWidth, frameHeight, drawingColor[0], drawingColor[1], drawingColor[2]);
 }
 
+void WorldEditorRenderer::DrawLine(int x1, int y1, int x2, int y2)
+{
+    TextureDrawing::DrawLine(x1, y1, x2, y2, frameData, frameWidth, frameHeight, drawingColor[0], drawingColor[1], drawingColor[2]);
+}
+
 void WorldEditorRenderer::DrawWorldPoint(float x, float y, float size)
 {
     float newX, newY;
