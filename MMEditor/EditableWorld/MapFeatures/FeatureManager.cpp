@@ -1,5 +1,7 @@
 #include "FeatureManager.h"
 
+#include <iostream>
+#include <ostream>
 #include <set>
 
 
@@ -30,6 +32,10 @@ void FeatureManager::InitializeFromWorld(EditableWorld& world)
                 features.push_back(std::make_shared<CornerFeature>(cornerFeature));
             }
             int nexCornerIndex = room.cornersIndexes[(RoomCornerIndex + 1) % room.cornersIndexes.size()];
+            if (cornerIndex > nexCornerIndex)
+            {
+                std::swap(cornerIndex, nexCornerIndex);
+            }
             std::tuple<int,int> wall = std::make_tuple(cornerIndex, nexCornerIndex);
             if (!registeredRoom.contains(wall))
             {

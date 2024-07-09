@@ -1,6 +1,8 @@
 #pragma once
 #include "../MapFeature.h"
 
+
+
 class CornerFeature : public MapFeature
 {
 public:
@@ -8,10 +10,12 @@ public:
     {
         drawPriority = CORNERDRAWPRIORITY;
         selectPriority = CORNERSELECTPRIORITY;
+        SetNormalColor(255,0,0);
+        SetHoveredColor(255,170,0);
     }
     auto Draw(WorldEditorRenderer& worldEditorRenderer) -> void override;
     bool CanSelect(WorldEditorRenderer& worldEditorRenderer, float x, float y) override;
-    void Drag(WorldEditor worldEditor, float dx, float dy) override;
+    void Drag(WorldEditor& worldEditor, float dx, float dy) override;
     void RenderGui(EditableWorld& editableWorld) override;
 
 private:

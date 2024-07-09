@@ -16,7 +16,7 @@ bool CornerFeature::CanSelect(WorldEditorRenderer& worldEditorRenderer, float x,
     return (x - corner.x) * (x - corner.x) + (y - corner.y) * (y - corner.y) < selectionRadius * selectionRadius;
 }
 
-void CornerFeature::Drag(WorldEditor worldEditor, float dx, float dy)
+void CornerFeature::Drag(WorldEditor& worldEditor, float dx, float dy)
 {
     worldEditor.MoveCorner(cornerIndex, dx, dy);
 }

@@ -2,10 +2,10 @@
 #include "../WorldEditorRenderer.h"
 #include "../WorldEditor.h"
 
-#define WALLDRAWPRIORITY 1
-#define WALLSELECTPRIORITY 1
-#define ROOMDRAWPRIORITY 2
-#define ROOMSELECTPRIORITY 2
+#define ROOMDRAWPRIORITY 1
+#define ROOMSELECTPRIORITY 1
+#define WALLDRAWPRIORITY 2
+#define WALLSELECTPRIORITY 2
 #define CORNERDRAWPRIORITY 3
 #define CORNERSELECTPRIORITY 3
 
@@ -22,7 +22,7 @@ public:
     virtual ~MapFeature() = default;
     virtual void Draw(WorldEditorRenderer& worldEditorRenderer) = 0;
     virtual bool CanSelect(WorldEditorRenderer& worldEditorRenderer, float x, float y) = 0;
-    virtual void Drag(WorldEditor worldEditor, float dx, float dy) = 0;
+    virtual void Drag(WorldEditor& worldEditor, float dx, float dy) = 0;
     virtual void RenderGui(EditableWorld& editableWorld) {};
 
     int GetDrawPriority() const;
@@ -30,6 +30,13 @@ public:
     void SetState(State inState);
     State GetState() const;
     const unsigned char* GetCurrentColor() const;
+
+    void SetNormalColor(unsigned char* color);
+    void SetNormalColor(unsigned char r, unsigned char g, unsigned char b);
+    void SetHoveredColor(unsigned char* color);
+    void SetHoveredColor(unsigned char r, unsigned char g, unsigned char b);
+    void SetSelectedColor(unsigned char* color);
+    void SetSelectedColor(unsigned char r, unsigned char g, unsigned char b);
 protected:
     int drawPriority = 0;
     int selectPriority = 0;

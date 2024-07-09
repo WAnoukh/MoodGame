@@ -113,6 +113,15 @@ void WorldEditorRenderer::DrawWorldPoint(float x, float y, float size)
     TextureDrawing::DrawCircle(newX, newY, size, frameData, frameWidth, frameHeight, drawingColor[0], drawingColor[1], drawingColor[2]);
 }
 
+void WorldEditorRenderer::DrawPixel(int x, int y)
+{
+    if (x < 0 || y < 0 || x >= frameWidth || y >= frameHeight)
+    {
+        return;
+    }
+    TextureDrawing::DrawPixel(x, y, frameData, frameWidth, drawingColor[0], drawingColor[1], drawingColor[2]);
+}
+
 float WorldEditorRenderer::GetCamVerticalSize() const
 {
     return camVerticalSize;

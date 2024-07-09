@@ -1,5 +1,7 @@
 #include "WallFeature.h"
 
+#include "imgui.h"
+
 void WallFeature::Draw(WorldEditorRenderer& worldEditorRenderer)
 {
     worldEditorRenderer.SetDrawingColor(0, 255, 0);
@@ -19,13 +21,27 @@ bool WallFeature::CanSelect(WorldEditorRenderer& worldEditorRenderer, float x, f
     float wallNorm = sqrt(xNorm * xNorm + yNorm * yNorm);
     xNorm /= wallNorm;
     yNorm /= wallNorm;
-    float nDist =  ((x-corner1.x) * xNorm + (y-corner1.y) * yNorm );
-    float pDist = ((x-corner1.x) * yNorm - (y-corner1.y) * xNorm );
+    float nDist =  (x-corner1.x) * xNorm + (y-corner1.y) * yNorm;
+    float pDist = ((x-corner1.x) * (corner2.x - corner1.x) + (y-corner1.y) * (corner2.y - corner1.y));
+    if (pDist < 0)
+    {
+        return false;
+    }
+    if (pDist > (corner2.x - corner1.x) * (corner2.x - corner1.x) + (corner2.y - corner1.y) * (corner2.y - corner1.y))
+    {
+        return false;
+    }
     
     return abs(nDist) < selectionRadius;
 }
 
-void WallFeature::Drag(WorldEditor worldEditor, float dx, float dy)
+void WallFeature::Drag(WorldEditor& worldEditor, float dx, float dy)
 {
     
+    worldEditor.MoveCorner(cornerIndex1, dx, dy);
+    worldEditor.MoveCorner(cornerIndex2, dx, dy);
+}
+
+void WallFeature::RenderGui(EditableWorld& editableWorld)
+{
 }

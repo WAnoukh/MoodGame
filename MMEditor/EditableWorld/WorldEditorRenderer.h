@@ -23,6 +23,7 @@ public:
     void SetDrawingColor(const unsigned char* color);
     void DrawWorldLine(float x1, float y1, float x2, float y2);
     void DrawWorldPoint(float x, float y, float size = 3);
+    void DrawPixel(int x, int y);
     
     float GetCamVerticalSize() const;
 private:

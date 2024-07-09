@@ -91,11 +91,17 @@ void EditorApp::Tick(float deltaTime)
     mapRenderer.SetCamera(xOffset * camVerticalSize * RENDERRATIO, yOffset * camVerticalSize, 0.0f);
     worldEditorRenderer.SetCamera(xOffset * camVerticalSize * RENDERRATIO, yOffset * camVerticalSize, 0.0f);
 
-    float worldX, worldY;
-    WindowToWorld(lastMouseX, lastMouseY, worldX, worldY);
-    MapFeature* foundFeature = featureManager.FindSelectedFeature(worldEditorRenderer, worldX, worldY);
-    SetHoveredFeature(foundFeature);
-    
+    if(!panning)
+    {
+        float worldX, worldY;
+        WindowToWorld(lastMouseX, lastMouseY, worldX, worldY);
+        MapFeature* foundFeature = featureManager.FindSelectedFeature(worldEditorRenderer, worldX, worldY);
+        SetHoveredFeature(foundFeature);
+    }else
+    {
+        SetHoveredFeature(nullptr);
+    }
+
     // Move selected Feature
     if(selectedFeature != nullptr && dragging)
     {
