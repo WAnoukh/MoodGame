@@ -2,6 +2,7 @@
 #define _USE_MATH_DEFINES  // NOLINT(clang-diagnostic-reserved-macro-identifier, bugprone-reserved-identifier)
 #include <algorithm>
 #include <cmath>
+#include <corecrt_math_defines.h>
 
 bool PointInside(float x, float y, const Wall& wall)
 {
@@ -38,6 +39,16 @@ void World::SetWalls(Wall* inWalls, size_t inNum)
 
     walls = inWalls;
     numWalls = inNum;
+}
+
+void World::SetPlayerSpawnPos(float x, float y, float orientation)
+{
+    playerSpawnPos = {x, y, orientation};
+}
+
+void World::SetPlayerSpawnPos(std::tuple<float, float, float> pos)
+{
+    playerSpawnPos = pos;
 }
 
 bool World::PointInsideSector(float x, float y, size_t sectorIndex) const
@@ -84,4 +95,9 @@ size_t World::GetSectorsCount() const
 size_t World::GetWallsCount() const
 {
     return numWalls;
+}
+
+std::tuple<float, float, float> World::GetPlayerSpawnPos() const
+{
+    return playerSpawnPos;
 }

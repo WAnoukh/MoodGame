@@ -13,7 +13,7 @@ class GameApp
 {
 public:
     
-    void Init(const char* startingMapPath = nullptr);
+    void Init(const char* startingMapPath = "../res/DefaultMap.map");
     int Run();
     
     void Tick(float deltaTime);
@@ -38,6 +38,8 @@ public:
                                   int mods);
 
     void BindInput();
+
+    void LoadLevel(const char* path);
 private:
     inline static GameApp* instance = nullptr;
     GameWindow window = GameWindow();
@@ -46,8 +48,7 @@ private:
     int lastDeltaTimesIndex = 0;
 
     World world;
-    WorldReader reader = WorldReader(world, "../res/test1.map");
-    //WorldReader reader = WorldReader(world, "../res/wall.map");
+    WorldReader reader = WorldReader(world);
     WorldRenderer worldRenderer = WorldRenderer(world);
     MapRenderer mapRenderer = MapRenderer(world);
     GLTexture shownTexture;

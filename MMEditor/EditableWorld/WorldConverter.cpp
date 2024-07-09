@@ -10,17 +10,17 @@
 #include <tuple>
 using namespace std;
 
-void WorldConverter::ConvertWorld(EditableWorld& editableWorld, World& world)
+void WorldConverter::ConvertWorld(EditableWorld& outEditableWorld, World& world)
 {
-    editableWorld.corners.clear();
-    editableWorld.rooms.clear();
+    outEditableWorld.corners.clear();
+    outEditableWorld.rooms.clear();
     map<tuple<float, float>, int> cornersMap;
     size_t sectorIndex;
     for (sectorIndex = 1; sectorIndex <= world.GetSectorsCount(); ++sectorIndex)
     {
         Sector& sector = *world.GetSector(sectorIndex);
-        editableWorld.rooms.emplace_back();
-        EditableWorld::Room& room = editableWorld.rooms.back();
+        outEditableWorld.rooms.emplace_back();
+        EditableWorld::Room& room = outEditableWorld.rooms.back();
         room.ceil = sector.ceil;
         room.floor = sector.floor;
         for (size_t wallIndex = sector.firstWall; wallIndex < sector.firstWall + sector.numWalls; ++wallIndex)
@@ -29,13 +29,14 @@ void WorldConverter::ConvertWorld(EditableWorld& editableWorld, World& world)
             tuple c1Key(wall.x1, wall.y1);
             if(!cornersMap.contains(c1Key))
             {
-                editableWorld.corners.push_back({wall.x1,wall.y1});
-                EditableWorld::Corner& corner = editableWorld.corners.back();
-                cornersMap[c1Key] = editableWorld.corners.size() - 1;
+                outEditableWorld.corners.push_back({wall.x1,wall.y1});
+                EditableWorld::Corner& corner = outEditableWorld.corners.back();
+                cornersMap[c1Key] = outEditableWorld.corners.size() - 1;
             }
             room.cornersIndexes.push_back(cornersMap[c1Key]);
         }
     }
+    outEditableWorld.playerSpawnPos = world.GetPlayerSpawnPos();
 }
 
 void WorldConverter::ConvertEditableWorld(World& outWorld, const EditableWorld& editableWorld)
@@ -151,4 +152,5 @@ void WorldConverter::ConvertEditableWorld(World& outWorld, const EditableWorld& 
     }
     outWorld.SetSectors(sectorsArr, sectors.size());
     outWorld.SetWalls(wallsArr, walls.size());
+    outWorld.SetPlayerSpawnPos(editableWorld.playerSpawnPos);
 }

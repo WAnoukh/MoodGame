@@ -10,6 +10,7 @@
 #include "EditableWorld/EditableWorld.h"
 #include "EditableWorld/WorldEditor.h"
 #include "EditableWorld/WorldEditorRenderer.h"
+#include "EditableWorld/MapFeatures/FeatureManager.h"
 
 class EditorApp
 {
@@ -22,6 +23,7 @@ public:
     void Tick(float deltaTime);
 
     void Render();
+    void LoadWorld();
 
     void RenderMenu();
     
@@ -52,11 +54,12 @@ private:
 
     World world;
     //WorldReader reader = WorldReader(world, "../res/DefaultMap.map");
-    WorldReader reader = WorldReader(world, "../res/2cube.map");
+    WorldReader reader = WorldReader(world);
     EditableWorld editableWorld;
     MapRenderer mapRenderer{world};
     WorldEditor worldEditor{&editableWorld};
     WorldEditorRenderer worldEditorRenderer{editableWorld};
+    FeatureManager featureManager;
     GLTexture shownTexture;
 
     double lastMouseX = 0.0;
@@ -69,11 +72,17 @@ private:
     float yOffset = 0;
 
     bool panning = false;
-    int selectedCorner = -1;
 
-    char openPath[256] = "../res/test1.map";
+    char openPath[256] = "../res/2cube.map";
     bool LayoutNeedRefresh = true;
 
     void WindowToWorld(float x, float y, float& outX, float& outY);
     void DeltaWindowToWorld(float dx, float dy, float& outDx, float& outDy);
+
+    MapFeature* hoveredFeature = nullptr;
+    MapFeature* selectedFeature = nullptr;
+    bool dragging = false;
+
+    void SetHoveredFeature(MapFeature* feature);
+    void SetSelectedFeature(MapFeature* feature);
 };
