@@ -92,7 +92,7 @@ void GameApp::Tick(float deltaTime)
             float speedDist =  ((speedX) * xNorm + (speedY) * yNorm );
             float minNormalSpeed = PLAYERRADIUS - playerDist;
             float diff = speedDist - minNormalSpeed;
-            if (perpDist < PLAYERRADIUS)
+            if (perpDist < -PLAYERRADIUS)
             {
                 continue;
             }
