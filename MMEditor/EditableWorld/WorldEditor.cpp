@@ -124,3 +124,26 @@ void WorldEditor::CorrectRoomCornersOrder(EditableWorld& world, int roomIndex)
     }
 }
 
+int WorldEditor::AddCorner(EditableWorld& world, int cornerIndex1, int cornerIndex2, float ratio)
+{
+    EditableWorld::Corner newCorner;
+    newCorner.x = world.corners[cornerIndex1].x * (1 - ratio) + world.corners[cornerIndex2].x * ratio;
+    newCorner.y = world.corners[cornerIndex1].y * (1 - ratio) + world.corners[cornerIndex2].y * ratio;
+    world.corners.push_back(newCorner);
+    for (auto& room : world.rooms)
+    {
+        for (int i = 0; i < room.cornersIndexes.size(); ++i)
+        {
+            int curCornerIndex1 = room.cornersIndexes[i];
+            int curCornerIndex2 = room.cornersIndexes[(i + 1) % room.cornersIndexes.size()];
+            if (curCornerIndex1 > curCornerIndex2)
+                std::swap(curCornerIndex1, curCornerIndex2);
+            if (curCornerIndex1 == cornerIndex1 && curCornerIndex2 == cornerIndex2)
+            {
+                room.cornersIndexes.insert(room.cornersIndexes.begin() + i + 1, world.corners.size() - 1);
+            }
+        }
+    }
+    return world.corners.size() - 1;
+}
+

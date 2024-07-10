@@ -108,6 +108,28 @@ int FeatureManager::Extrude(EditableWorld& world, std::shared_ptr<WallFeature> f
     return 0;
 }
 
+std::shared_ptr<CornerFeature> FeatureManager::AddCorner(EditableWorld& world, std::shared_ptr<WallFeature> targetWall,
+                                                         float x, float y)
+{
+    auto& corner1 = world.corners[targetWall->GetCorner1()];
+    auto& corner2 = world.corners[targetWall->GetCorner2()];
+    float pDist = ((x-corner1.x) * (corner2.x - corner1.x) + (y-corner1.y) * (corner2.y - corner1.y));
+    float ratio = pDist / ((corner2.x - corner1.x) * (corner2.x - corner1.x) + (corner2.y - corner1.y) * (corner2.y - corner1.y));
+    int newCornerIndex = WorldEditor::AddCorner(world, targetWall->GetCorner1(), targetWall->GetCorner2(), ratio);
+    InitializeFromWorld(world);
+    for (auto& feature : features)
+    {
+        std::shared_ptr<CornerFeature> cornerFeature = std::dynamic_pointer_cast<CornerFeature>(feature);
+        if (cornerFeature)
+        {
+            if(newCornerIndex == cornerFeature->GetCornerIndex())
+            {
+                return cornerFeature;
+            }
+        }
+    }
+}
+
 
 void FeatureManager::SortFeatures()
 {

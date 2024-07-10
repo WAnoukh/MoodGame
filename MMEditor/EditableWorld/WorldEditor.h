@@ -11,4 +11,5 @@ public:
     static int Extrude(EditableWorld& world, int cornerIndex1, int cornerIndex2, int& outExtrudedCorner1, int& outExtrudedCorner2, bool
                        separateRooms = true);
     static void CorrectRoomCornersOrder(EditableWorld& world, int roomIndex);
+    static int AddCorner(EditableWorld& world, int cornerIndex1, int cornerIndex2, float ratio);
 };

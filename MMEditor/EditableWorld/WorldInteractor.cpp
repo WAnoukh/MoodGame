@@ -64,6 +64,26 @@ void WorldInteractor::MouseButtonCallBackEvent(int button, int action)
     }
     if (button == GLFW_MOUSE_BUTTON_RIGHT)
     {
+        if (WindowInput::GetInstance().IsKeyPressed(GLFW_KEY_LEFT_SHIFT) && action == GLFW_PRESS &&
+            (hoveredFeature != nullptr || selectedFeature != nullptr))
+        {
+            std::shared_ptr<WallFeature> wallFeature;
+            if (hoveredFeature)
+            {
+                wallFeature = std::dynamic_pointer_cast<WallFeature>(hoveredFeature);
+            }
+            else
+            {
+                wallFeature = std::dynamic_pointer_cast<WallFeature>(selectedFeature);
+            }
+            if (wallFeature)
+            {
+                auto newCorner = featureManager.AddCorner(*world, wallFeature, worldMouseX, worldMouseY);
+                SetSelectedFeature(newCorner);
+                dragging = true;
+            }
+            return;
+        }
         if (action == GLFW_PRESS)
         {
             std::shared_ptr<MapFeature> foundFeature = featureManager.FindSelectedFeature(*world, worldMouseX, worldMouseY);

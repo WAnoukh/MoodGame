@@ -88,9 +88,18 @@ void GameApp::Tick(float deltaTime)
             xNorm /= wallNorm;
             yNorm /= wallNorm;
             float playerDist =  ((camX-wall->x1) * xNorm + (camY-wall->y1) * yNorm );
+            float perpDist = ((camX-wall->x1) * (wall->x2 - wall->x1) + (camY-wall->y1) * (wall->y2 - wall->y1));
             float speedDist =  ((speedX) * xNorm + (speedY) * yNorm );
             float minNormalSpeed = PLAYERRADIUS - playerDist;
             float diff = speedDist - minNormalSpeed;
+            if (perpDist < PLAYERRADIUS)
+            {
+                continue;
+            }
+            if (perpDist > (wall->x2 - wall->x1) * (wall->x2 - wall->x1) + (wall->y2 - wall->y1) * (wall->y2 - wall->y1) + PLAYERRADIUS)
+            {
+                continue;
+            }
             if (diff < 0)
             {
                 speedX -= xNorm * diff; 

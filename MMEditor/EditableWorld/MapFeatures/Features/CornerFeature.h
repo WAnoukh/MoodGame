@@ -1,8 +1,6 @@
 #pragma once
 #include "../MapFeature.h"
 
-
-
 class CornerFeature : public MapFeature
 {
 public:
@@ -17,7 +15,7 @@ public:
     bool CanSelect(EditableWorld& editableWorld, float x, float y) override;
     void Drag(EditableWorld& world, float dx, float dy) override;
     void RenderGui(EditableWorld& editableWorld) override;
-
+    int GetCornerIndex() const { return cornerIndex; }
 private:
     const float selectionRadius = 0.2f;
     int cornerIndex;
