@@ -14,6 +14,12 @@ WindowInput& WindowInput::GetInstance()
     return *instance;
 }
 
+bool WindowInput::IsShiftPressed()
+{
+    WindowInput& input = GetInstance();
+    return input.IsKeyPressed(GLFW_KEY_LEFT_SHIFT) || input.IsKeyPressed(GLFW_KEY_RIGHT_SHIFT);
+}
+
 void WindowInput::KeyboardKeyCallBackEvent(int key, int scancode, int action)
 {
     if(action == GLFW_PRESS)

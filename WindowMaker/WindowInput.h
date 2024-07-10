@@ -5,7 +5,7 @@ class WindowInput
 {
 public:
     static WindowInput& GetInstance();
-    
+    static bool IsShiftPressed();
     void KeyboardKeyCallBackEvent(int key, int scancode, int action);
     bool IsKeyPressed(int key) const;
 private:

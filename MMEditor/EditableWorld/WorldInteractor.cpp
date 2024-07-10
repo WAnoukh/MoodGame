@@ -64,7 +64,7 @@ void WorldInteractor::MouseButtonCallBackEvent(int button, int action)
     }
     if (button == GLFW_MOUSE_BUTTON_RIGHT)
     {
-        if (WindowInput::GetInstance().IsKeyPressed(GLFW_KEY_LEFT_SHIFT) && action == GLFW_PRESS &&
+        if (WindowInput::IsShiftPressed() && action == GLFW_PRESS &&
             (hoveredFeature != nullptr || selectedFeature != nullptr))
         {
             std::shared_ptr<WallFeature> wallFeature;
@@ -122,7 +122,7 @@ void WorldInteractor::KeyboardKeyCallBackEvent(int key, int scancode, int action
                 std::shared_ptr<WallFeature> wallFeature = std::dynamic_pointer_cast<WallFeature>(selectedFeature);
                 if (wallFeature)
                 {
-                    bool separateRooms = WindowInput::GetInstance().IsKeyPressed(GLFW_KEY_LEFT_SHIFT);
+                    bool separateRooms = WindowInput::IsShiftPressed();
                     std::shared_ptr<WallFeature> extrudedFeature;
                     int result = featureManager.Extrude(*world, wallFeature, extrudedFeature, separateRooms);
                     if (result >= 0)
