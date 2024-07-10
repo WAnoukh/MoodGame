@@ -48,6 +48,10 @@ void RoomFeature::Draw(WorldEditorRenderer& worldEditorRenderer)
             maxy = y2;
         }
     }
+    maxx = std::min(maxx, worldEditorRenderer.GetFrameWidth());
+    maxy = std::min(maxy, worldEditorRenderer.GetFrameHeight());
+    minx = std::max(minx, 0);
+    miny = std::max(miny, 0);
     worldEditorRenderer.SetDrawingColor(GetCurrentColor());
     for (int pixelX = minx; pixelX <= maxx; pixelX+=10)
     {

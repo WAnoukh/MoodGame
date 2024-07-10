@@ -17,7 +17,11 @@ public:
     void SetCameraY(float y);
     void SetCameraAngle(float angle);
 
+    int GetFrameWidth() const { return frameWidth; }
+    int GetFrameHeight() const { return frameHeight; }
+    
     //Drawing methods
+    void DrawGrid();
     void NewFrame(int width, int height, unsigned char* outData);
     void SetDrawingColor(unsigned char r, unsigned char g, unsigned char b);
     void SetDrawingColor(const unsigned char* color);
@@ -39,4 +43,8 @@ private:
     unsigned char* frameData = nullptr;
 
     unsigned char drawingColor[3] = { 255, 0, 0 };
+    
+    unsigned char strongUnitGridColor[3] = { 100, 100, 100 };
+    unsigned char weakUnitGridColor[3] = { 20, 20, 20 };
+    int gridSubdivisions = 10;
 };

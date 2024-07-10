@@ -77,6 +77,49 @@ void WorldEditorRenderer::SetCameraAngle(float angle)
     camAngle = angle;
 }
 
+void WorldEditorRenderer::DrawGrid()
+{
+    float worldX, worldY;
+    ViewToWorld(0, 0, worldX, worldY);
+    float worldX2, worldY2;
+    ViewToWorld(frameWidth, frameHeight, worldX2, worldY2);
+    worldX = floor(worldX);
+    worldY = ceil(worldY);
+    SetDrawingColor(weakUnitGridColor);
+    for (float x = worldX; x < worldX2; x += 1.0f / gridSubdivisions)
+    {
+        float viewX, viewY;
+        WorldToView(x, worldY, viewX, viewY);
+        if (abs(round (x) -x ) > 0.01f )
+        {
+            DrawLine(viewX, 0, viewX, frameHeight);
+        }
+        
+    }
+    for (float y = worldY; y > worldY2; y -= 1.0f / gridSubdivisions)
+    {
+        float viewX, viewY;
+        WorldToView(worldX, y, viewX, viewY);
+        if (abs(round (y) -y ) > 0.01f )
+        {
+            DrawLine(0, viewY, frameWidth, viewY);
+        }
+    }
+    SetDrawingColor(strongUnitGridColor);
+    for (float x = worldX; x < worldX2; x += 1.0f)
+    {
+        float viewX, viewY;
+        WorldToView(x, worldY, viewX, viewY);
+        DrawLine(viewX, 0, viewX, frameHeight);
+    }
+    for (float y = worldY; y > worldY2; y -= 1.0f)
+    {
+        float viewX, viewY;
+        WorldToView(worldX, y, viewX, viewY);
+        DrawLine(0, viewY, frameWidth, viewY);
+    }
+}
+
 void WorldEditorRenderer::NewFrame(int width, int height, unsigned char* outData)
 {
     frameData = outData;

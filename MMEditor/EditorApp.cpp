@@ -102,6 +102,7 @@ void EditorApp::Render()
     unsigned char* renderData = shownTexture.GetTextureData();
     shownTexture.Fill(0, 0, 0);
     worldEditorRenderer.NewFrame(shownTexture.GetWidth(), shownTexture.GetHeight(), renderData);
+    worldEditorRenderer.DrawGrid();
     worldInteractor.DrawFeatures(worldEditorRenderer);
     shownTexture.SendDataToOpenGl();
 
