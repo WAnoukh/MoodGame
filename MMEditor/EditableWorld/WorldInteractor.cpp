@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <GLFW/glfw3.h>
+#include "../../WindowMaker/WindowInput.h"
 
 #include "MapFeatures/Features/WallFeature.h"
 
@@ -101,8 +102,9 @@ void WorldInteractor::KeyboardKeyCallBackEvent(int key, int scancode, int action
                 std::shared_ptr<WallFeature> wallFeature = std::dynamic_pointer_cast<WallFeature>(selectedFeature);
                 if (wallFeature)
                 {
+                    bool separateRooms = WindowInput::GetInstance().IsKeyPressed(GLFW_KEY_LEFT_SHIFT);
                     std::shared_ptr<WallFeature> extrudedFeature;
-                    int result = featureManager.Extrude(*world, wallFeature, extrudedFeature);
+                    int result = featureManager.Extrude(*world, wallFeature, extrudedFeature, separateRooms);
                     if (result >= 0)
                     {
                         SetSelectedFeature(extrudedFeature);

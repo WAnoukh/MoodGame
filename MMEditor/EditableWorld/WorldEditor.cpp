@@ -16,10 +16,12 @@ void WorldEditor::MoveCorner(EditableWorld& world, int cornerIndex, float dx, fl
     corner.y += dy;
 }
 
-int WorldEditor::Extrude(EditableWorld& world, int cornerIndex1, int cornerIndex2, int& outExtrudedCorner1, int& outExtrudedCorner2)
+int WorldEditor::Extrude(EditableWorld& world, int cornerIndex1, int cornerIndex2, int& outExtrudedCorner1, int& outExtrudedCorner2, bool
+                         separateRooms)
 {
     int foundOccurences = 0;
-    const EditableWorld::Room* foundRoom = nullptr;
+    EditableWorld::Room* foundRoom = nullptr;
+    int foundCornerIndex = 0;
     int curCornerIndex1, curCornerIndex2;
     for(auto& room : world.rooms)
     {
@@ -36,6 +38,7 @@ int WorldEditor::Extrude(EditableWorld& world, int cornerIndex1, int cornerIndex
                 {
                     ++foundOccurences;
                     foundRoom = &room;
+                    foundCornerIndex = cornerIndex;
                     if (swapped)
                         std::swap(cornerIndex1, cornerIndex2);
                     break;
@@ -47,9 +50,6 @@ int WorldEditor::Extrude(EditableWorld& world, int cornerIndex1, int cornerIndex
         return -1;
     if (foundOccurences > 1)
         return -2;
-    EditableWorld::Room newRoom;
-    newRoom.ceil = foundRoom->ceil;
-    newRoom.floor = foundRoom->floor;
     EditableWorld::Corner newCorner1 = world.corners[cornerIndex1];
     EditableWorld::Corner newCorner2 = world.corners[cornerIndex2];
     world.corners.push_back(newCorner1);
@@ -57,12 +57,26 @@ int WorldEditor::Extrude(EditableWorld& world, int cornerIndex1, int cornerIndex
     outExtrudedCorner1 = world.corners.size() - 2;
     outExtrudedCorner2 = world.corners.size() - 1;
     
-    newRoom.cornersIndexes.push_back(cornerIndex2);
-    newRoom.cornersIndexes.push_back(cornerIndex1);
-    newRoom.cornersIndexes.push_back(outExtrudedCorner1);
-    newRoom.cornersIndexes.push_back(outExtrudedCorner2);
+    if (separateRooms)
+    {
+        EditableWorld::Room newRoom;
+        newRoom.ceil = foundRoom->ceil;
+        newRoom.floor = foundRoom->floor;
+        newRoom.cornersIndexes.push_back(cornerIndex2);
+        newRoom.cornersIndexes.push_back(cornerIndex1);
+        newRoom.cornersIndexes.push_back(outExtrudedCorner1);
+        newRoom.cornersIndexes.push_back(outExtrudedCorner2);
     
-    world.rooms.push_back(newRoom);
+        world.rooms.push_back(newRoom); 
+    }
+    else
+    {
+        ++foundCornerIndex;
+        foundCornerIndex %= foundRoom->cornersIndexes.size();
+        foundRoom->cornersIndexes.insert(foundRoom->cornersIndexes.begin() + foundCornerIndex, outExtrudedCorner2);
+        foundRoom->cornersIndexes.insert(foundRoom->cornersIndexes.begin() + foundCornerIndex, outExtrudedCorner1);
+    }
+
 }
 
 void WorldEditor::CorrectRoomCornersOrder(EditableWorld& world, int roomIndex)

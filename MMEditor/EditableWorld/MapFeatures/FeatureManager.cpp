@@ -81,12 +81,13 @@ std::shared_ptr<MapFeature> FeatureManager::FindSelectedFeature(EditableWorld& e
     return nullptr;
 }
 
-int FeatureManager::Extrude(EditableWorld& world, std::shared_ptr<WallFeature> featureToExtrude, std::shared_ptr<WallFeature>& extrudedFeature)
+int FeatureManager::Extrude(EditableWorld& world, std::shared_ptr<WallFeature> featureToExtrude, std::shared_ptr<WallFeature>& extrudedFeature, bool
+                            separateRooms)
 {
     auto corner1 = featureToExtrude->GetCorner1();
     auto corner2 = featureToExtrude->GetCorner2();
     int extrudedCorner1, extrudedCorner2;
-    int result = WorldEditor::Extrude(world, corner1, corner2, extrudedCorner1, extrudedCorner2);
+    int result = WorldEditor::Extrude(world, corner1, corner2, extrudedCorner1, extrudedCorner2, separateRooms);
     InitializeFromWorld(world);
     if (result < 0)
     {

@@ -16,7 +16,8 @@ public:
     void Draw(WorldEditorRenderer& worldEditorRenderer);
     std::shared_ptr<MapFeature> FindSelectedFeature(EditableWorld& editableWorld, float x, float y);
 
-    int Extrude(EditableWorld& world, std::shared_ptr<WallFeature> featureToExtrude, std::shared_ptr<WallFeature>& extrudedFeature);
+    int Extrude(EditableWorld& world, std::shared_ptr<WallFeature> featureToExtrude, std::shared_ptr<WallFeature>& extrudedFeature, bool
+                separateRooms);
 private:
     std::vector<std::shared_ptr<MapFeature>> features;
     std::list<int> featuresIndexesSortedByDrawOrder;
