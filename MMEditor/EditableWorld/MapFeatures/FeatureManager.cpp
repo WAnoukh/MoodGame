@@ -14,6 +14,16 @@
 
 void FeatureManager::InitializeFromWorld(EditableWorld& world)
 {
+    features.clear();
+    featuresIndexesSortedByDrawOrder.clear();
+    featuresIndexesSortedBySelectOrder.clear();
+    features = ExctractFeatures(world);
+    SortFeatures();
+}
+
+std::vector<std::shared_ptr<MapFeature>> FeatureManager::ExctractFeatures(EditableWorld& world)
+{
+    std::vector<std::shared_ptr<MapFeature>> extractedFeatures;
     std::set<std::tuple<int,int>> registeredRoom;
     std::set<int> registeredCorner;
     for(int roomIndex = 0; roomIndex < world.rooms.size(); ++roomIndex)
@@ -21,7 +31,7 @@ void FeatureManager::InitializeFromWorld(EditableWorld& world)
         EditableWorld::Room& room = world.rooms[roomIndex];
         
         RoomFeature roomFeature(roomIndex);
-        features.push_back(std::make_shared<RoomFeature>(roomIndex));
+        extractedFeatures.push_back(std::make_shared<RoomFeature>(roomIndex));
         
         for (int RoomCornerIndex = 0; RoomCornerIndex < room.cornersIndexes.size(); ++RoomCornerIndex)
         {
@@ -30,7 +40,7 @@ void FeatureManager::InitializeFromWorld(EditableWorld& world)
             {
                 registeredCorner.insert(cornerIndex);
                 CornerFeature cornerFeature(cornerIndex);
-                features.push_back(std::make_shared<CornerFeature>(cornerFeature));
+                extractedFeatures.push_back(std::make_shared<CornerFeature>(cornerFeature));
             }
             int nexCornerIndex = room.cornersIndexes[(RoomCornerIndex + 1) % room.cornersIndexes.size()];
             if (cornerIndex > nexCornerIndex)
@@ -42,13 +52,13 @@ void FeatureManager::InitializeFromWorld(EditableWorld& world)
             {
                 registeredRoom.insert(wall);
                 WallFeature wallFeature(cornerIndex, nexCornerIndex);
-                features.push_back(std::make_shared<WallFeature>(wallFeature));
+                extractedFeatures.push_back(std::make_shared<WallFeature>(wallFeature));
             }
         }
     }
     PlayerFeature playerFeature;
-    features.push_back(std::make_shared<PlayerFeature>(playerFeature));
-    SortFeatures();
+    extractedFeatures.push_back(std::make_shared<PlayerFeature>(playerFeature));
+    return extractedFeatures;
 }
 
 void FeatureManager::Draw(WorldEditorRenderer& worldEditorRenderer)
@@ -59,17 +69,44 @@ void FeatureManager::Draw(WorldEditorRenderer& worldEditorRenderer)
     }
 }
 
-MapFeature* FeatureManager::FindSelectedFeature(WorldEditorRenderer& worldEditorRenderer, float x, float y)
+std::shared_ptr<MapFeature> FeatureManager::FindSelectedFeature(EditableWorld& editableWorld, float x, float y)
 {
     for (int featureIndex : featuresIndexesSortedBySelectOrder)
     {
-        if (features[featureIndex]->CanSelect(worldEditorRenderer, x, y))
+        if (features[featureIndex]->CanSelect(editableWorld, x, y))
         {
-            return &*features[featureIndex];
+            return features[featureIndex];
         }
     }
     return nullptr;
 }
+
+int FeatureManager::Extrude(EditableWorld& world, std::shared_ptr<WallFeature> featureToExtrude, std::shared_ptr<WallFeature>& extrudedFeature)
+{
+    auto corner1 = featureToExtrude->GetCorner1();
+    auto corner2 = featureToExtrude->GetCorner2();
+    int extrudedCorner1, extrudedCorner2;
+    int result = WorldEditor::Extrude(world, corner1, corner2, extrudedCorner1, extrudedCorner2);
+    InitializeFromWorld(world);
+    if (result < 0)
+    {
+        return result;
+    }
+    for (auto& feature : features)
+    {
+        std::shared_ptr<WallFeature> wallFeature = std::dynamic_pointer_cast<WallFeature>(feature);
+        if (wallFeature)
+        {
+            if(extrudedCorner1 == wallFeature->GetCorner1() && extrudedCorner2 == wallFeature->GetCorner2())
+            {
+                extrudedFeature = wallFeature;
+                break;
+            }
+        }
+    }
+    return 0;
+}
+
 
 void FeatureManager::SortFeatures()
 {

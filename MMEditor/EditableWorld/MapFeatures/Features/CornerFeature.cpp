@@ -9,16 +9,16 @@ void CornerFeature::Draw(WorldEditorRenderer& worldEditorRenderer)
     worldEditorRenderer.DrawWorldPoint(corner.x, corner.y,3);
 }
 
-bool CornerFeature::CanSelect(WorldEditorRenderer& worldEditorRenderer, float x, float y)
+bool CornerFeature::CanSelect(EditableWorld& editableWorld, float x, float y)
 {
-    EditableWorld::Corner& corner = worldEditorRenderer.GetWorld().corners[cornerIndex];
+    EditableWorld::Corner& corner = editableWorld.corners[cornerIndex];
 
     return (x - corner.x) * (x - corner.x) + (y - corner.y) * (y - corner.y) < selectionRadius * selectionRadius;
 }
 
-void CornerFeature::Drag(WorldEditor& worldEditor, float dx, float dy)
+void CornerFeature::Drag(EditableWorld& world, float dx, float dy)
 {
-    worldEditor.MoveCorner(cornerIndex, dx, dy);
+    WorldEditor::MoveCorner(world, cornerIndex, dx, dy);
 }
 
 void CornerFeature::RenderGui(EditableWorld& editableWorld)

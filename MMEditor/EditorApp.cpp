@@ -62,53 +62,34 @@ void EditorApp::Init()
     LoadWorld();
 
     BindInput();
-    glfwGetCursorPos(window.getGLFWwindow(), &lastMouseX, &lastMouseY);
 }
 
 void EditorApp::Tick(float deltaTime)
 {
-    // Get mouse displacement
     double mouseX, mouseY;
     glfwGetCursorPos(window.getGLFWwindow(), &mouseX, &mouseY);
-    mouseDeltaX = mouseX - lastMouseX;
-    mouseDeltaY = mouseY - lastMouseY;
-    lastMouseX = mouseX;
-    lastMouseY = mouseY;
-
+    float worldX, worldY;
+    WindowToWorld(mouseX, mouseY, worldX, worldY);
+    float viewX, viewY;
+    WindowToViewport(mouseX, mouseY, viewX, viewY);
+    worldInteractor.MousePositionCallBackEvent(viewX, viewY, worldX, worldY);
+    
+    worldInteractor.Tick(deltaTime);
+    
     // Update editor zoom
-    mapRenderer.SetVerticalSize(zoom);
-    worldEditorRenderer.SetVerticalSize(zoom);
+    worldEditorRenderer.SetVerticalSize(worldInteractor.GetZoom());
 
-    // Update editor panning
-    if (panning)
+    // Update editor offset
+    float xOffset, yOffset;
+    float worldOffsetX, worldOffsetY;
+    worldInteractor.GetOffset(xOffset, yOffset);
+    worldEditorRenderer.VectorViewToWorld(xOffset, yOffset, worldOffsetX, worldOffsetY);
+    if (std::isnan(worldOffsetX) || std::isnan(worldOffsetY))
     {
-        size_t screenWidth, screenHeight;
-        window.GetScreenSize(screenWidth, screenHeight);
-        xOffset -= (mouseDeltaX) / (screenWidth);
-        yOffset += (mouseDeltaY) / (screenHeight);
+        worldOffsetX = 0;
+        worldOffsetY = 0;
     }
-    float camVerticalSize = mapRenderer.GetCamVerticalSize();
-    mapRenderer.SetCamera(xOffset * camVerticalSize * RENDERRATIO, yOffset * camVerticalSize, 0.0f);
-    worldEditorRenderer.SetCamera(xOffset * camVerticalSize * RENDERRATIO, yOffset * camVerticalSize, 0.0f);
-
-    if(!panning)
-    {
-        float worldX, worldY;
-        WindowToWorld(lastMouseX, lastMouseY, worldX, worldY);
-        MapFeature* foundFeature = featureManager.FindSelectedFeature(worldEditorRenderer, worldX, worldY);
-        SetHoveredFeature(foundFeature);
-    }else
-    {
-        SetHoveredFeature(nullptr);
-    }
-
-    // Move selected Feature
-    if(selectedFeature != nullptr && dragging)
-    {
-        float worldX, worldY;
-        DeltaWindowToWorld(mouseDeltaX, mouseDeltaY, worldX, worldY);
-        selectedFeature->Drag(worldEditor, worldX, worldY);
-    }
+    worldEditorRenderer.SetCamera(worldOffsetX, worldOffsetY, 0.0f);
 }
 
 void EditorApp::Render()
@@ -121,7 +102,7 @@ void EditorApp::Render()
     unsigned char* renderData = shownTexture.GetTextureData();
     shownTexture.Fill(0, 0, 0);
     worldEditorRenderer.NewFrame(shownTexture.GetWidth(), shownTexture.GetHeight(), renderData);
-    featureManager.Draw(worldEditorRenderer);
+    worldInteractor.DrawFeatures(worldEditorRenderer);
     shownTexture.SendDataToOpenGl();
 
     window.RenderScreen();
@@ -135,7 +116,7 @@ void EditorApp::LoadWorld()
     reader.SetPath(openPath);
     reader.Load();
     WorldConverter::ConvertWorld(editableWorld, world);
-    featureManager.InitializeFromWorld(editableWorld);
+    worldInteractor.InitializeFeatureManager();
 }
 
 void EditorApp::RenderMenu()
@@ -173,10 +154,7 @@ void EditorApp::RenderMenu()
     ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(guiViewPort,dockspace_flags | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoWindowMenuButton);
 
     ImGui::Begin("Parameters", nullptr);
-    if (selectedFeature != nullptr)
-    {
-        selectedFeature->RenderGui(editableWorld);
-    }
+    worldInteractor.RenderSelectedFeatureGUI();
     ImGui::End();
 
     if(LayoutNeedRefresh)
@@ -245,10 +223,11 @@ void EditorApp::framebufferSizeEvent(int width, int height)
 
 void EditorApp::ScrollCallBackEvent(GLFWwindow* window, bool guiWantToCapture, double xScroll, double ySroll)
 {
-    float zoomRate = (1 - ySroll * 0.1f);
-    zoom *= zoomRate;
-    xOffset /= zoomRate;
-    yOffset /= zoomRate;
+    if(guiWantToCapture)
+    {
+        return;
+    }
+    worldInteractor.ScrollCallBackEvent(xScroll, ySroll);
 }
 
 void EditorApp::MouseButtonCallBackEvent(GLFWwindow* window, bool guiWantToCapture, int button, int action, int mods)
@@ -257,48 +236,25 @@ void EditorApp::MouseButtonCallBackEvent(GLFWwindow* window, bool guiWantToCaptu
     {
         return;
     }
-    if (button == GLFW_MOUSE_BUTTON_LEFT)
-    {
-        if (action == GLFW_PRESS)
-        {
-            panning = true;
-            double xpos, ypos;
-            glfwGetCursorPos(window, &xpos, &ypos);
-        }
-        else if (action == GLFW_RELEASE)
-        {
-            panning = false;
-        }
-    }
-    if (button == GLFW_MOUSE_BUTTON_RIGHT)
-    {
-        if (action == GLFW_PRESS)
-        {
-            float worldX, worldY;
-            WindowToWorld(lastMouseX, lastMouseY, worldX, worldY);
-            MapFeature* foundFeature = featureManager.FindSelectedFeature(worldEditorRenderer, worldX, worldY);
-            if(foundFeature!=nullptr)
-            {
-                dragging = true;
-                std::cout << "Pressed" << std::endl;
-            }
-            SetSelectedFeature(foundFeature);
-        }
-        else if (action == GLFW_RELEASE)
-        {
-            std::cout << "Released" << std::endl;
-            dragging = false;
-        }
-    }
+    worldInteractor.MouseButtonCallBackEvent(button, action);
 }
 
 void EditorApp::MousePositionCallBackEvent(GLFWwindow* window, bool guiWantToCapture, double xPos, double yPos)
 {
+    if(guiWantToCapture)
+    {
+        return;
+    }
 }
 
 void EditorApp::KeyboardKeyCallBackEvent(GLFWwindow* window, bool guiWantToCapture, int key, int scancode, int action,
                                          int mods)
 {
+    if (guiWantToCapture)
+    {
+        return;
+    }
+    worldInteractor.KeyboardKeyCallBackEvent(key, scancode, action, mods);
     WindowInput::GetInstance().KeyboardKeyCallBackEvent(key, scancode, action);
 }
 
@@ -343,42 +299,24 @@ void EditorApp::BindInput()
     window.BindKeyboardKeyCallBackEvent(key_callback);
 }
 
-void EditorApp::WindowToWorld(float x, float y, float& outX, float& outY)
+void EditorApp::WindowToViewport(float x, float y, float& outX, float& outY)
 {
     size_t ww, wh;
     window.GetScreenSize(ww, wh);
-    x *= static_cast<float>(RENDERWIDTH) / ww;
-    y *= static_cast<float>(RENDERHEIGHT) / wh;
+    outX = x * static_cast<float>(RENDERWIDTH) / ww;
+    outY = y * static_cast<float>(RENDERHEIGHT) / wh;
+}
+
+void EditorApp::WindowToWorld(float x, float y, float& outX, float& outY)
+{
+    WindowToViewport(x, y, x, y);
     worldEditorRenderer.ViewToWorld(x, y, outX, outY);
 }
 
 void EditorApp::DeltaWindowToWorld(float dx, float dy, float& outDx, float& outDy)
 {
-    size_t ww, wh;
-    window.GetScreenSize(ww, wh);
-    dx *= static_cast<float>(RENDERWIDTH) / ww;
-    dy *= -static_cast<float>(RENDERHEIGHT) / wh;
+    WindowToViewport(dx, dy, dx, dy);
     worldEditorRenderer.VectorViewToWorld(dx, dy, outDx, outDy);
 }
 
-void EditorApp::SetHoveredFeature(MapFeature* feature)
-{
-    if (hoveredFeature != nullptr)
-        hoveredFeature->SetState(MapFeature::Normal);
-    if(feature != nullptr && feature == selectedFeature)
-        return;
-    hoveredFeature = feature;
-    if (hoveredFeature != nullptr)
-        hoveredFeature->SetState(MapFeature::Hovered);
-}
 
-void EditorApp::SetSelectedFeature(MapFeature* feature)
-{
-    if (selectedFeature != nullptr)
-        selectedFeature->SetState(MapFeature::Normal);
-    if(feature != nullptr && feature == hoveredFeature)
-        hoveredFeature = nullptr;
-    selectedFeature = feature;
-    if (selectedFeature != nullptr)
-        selectedFeature->SetState(MapFeature::Selected);
-}

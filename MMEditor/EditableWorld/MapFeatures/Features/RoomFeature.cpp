@@ -55,22 +55,21 @@ void RoomFeature::Draw(WorldEditorRenderer& worldEditorRenderer)
         {
             float x, y;
             worldEditorRenderer.ViewToWorld(pixelX, pixelY, x, y);
-            if (CanSelect(worldEditorRenderer, x, y))
+            if (CanSelect(worldEditorRenderer.GetWorld(), x, y))
             {
                 worldEditorRenderer.DrawPixel(pixelX, pixelY);
             }
-            
         }
     }
 }
 
-bool RoomFeature::CanSelect(WorldEditorRenderer& worldEditorRenderer, float x, float y)
+bool RoomFeature::CanSelect(EditableWorld& editableWorld, float x, float y)
 {
-    EditableWorld::Room& room =worldEditorRenderer.GetWorld().rooms[roomIndex];
+    EditableWorld::Room& room = editableWorld.rooms[roomIndex];
     for (size_t i = 0; i < room.cornersIndexes.size(); i++)
     {
-        EditableWorld::Corner& corner1 = worldEditorRenderer.GetWorld().corners[room.cornersIndexes[i]];
-        EditableWorld::Corner& corner2 = worldEditorRenderer.GetWorld().corners[room.cornersIndexes[(i+1)%room.cornersIndexes.size()]];
+        EditableWorld::Corner& corner1 = editableWorld.corners[room.cornersIndexes[i]];
+        EditableWorld::Corner& corner2 = editableWorld.corners[room.cornersIndexes[(i+1)%room.cornersIndexes.size()]];
         float ax, ay, bx, by;
         ax = corner2.x - corner1.x;
         ay = corner2.y - corner1.y;
@@ -89,12 +88,12 @@ bool RoomFeature::CanSelect(WorldEditorRenderer& worldEditorRenderer, float x, f
     return true;
 }
 
-void RoomFeature::Drag(WorldEditor& worldEditor, float dx, float dy)
+void RoomFeature::Drag(EditableWorld& world, float dx, float dy)
 {
-    EditableWorld::Room& room =worldEditor.GetWorld().rooms[roomIndex];
+    EditableWorld::Room& room =world.rooms[roomIndex];
     for (size_t i = 0; i < room.cornersIndexes.size(); i++)
     {
-        worldEditor.MoveCorner(room.cornersIndexes[i], dx, dy);
+        WorldEditor::MoveCorner(world, room.cornersIndexes[i], dx, dy);
     }
 }
 

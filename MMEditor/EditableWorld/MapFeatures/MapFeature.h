@@ -23,8 +23,8 @@ public:
     };
     virtual ~MapFeature() = default;
     virtual void Draw(WorldEditorRenderer& worldEditorRenderer) = 0;
-    virtual bool CanSelect(WorldEditorRenderer& worldEditorRenderer, float x, float y) = 0;
-    virtual void Drag(WorldEditor& worldEditor, float dx, float dy) = 0;
+    virtual bool CanSelect(EditableWorld& editableWorld, float x, float y) = 0;
+    virtual void Drag(EditableWorld& world, float dx, float dy) = 0;
     virtual void RenderGui(EditableWorld& editableWorld) {};
 
     int GetDrawPriority() const;

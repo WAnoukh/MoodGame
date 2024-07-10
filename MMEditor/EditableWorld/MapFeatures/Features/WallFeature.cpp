@@ -12,10 +12,10 @@ void WallFeature::Draw(WorldEditorRenderer& worldEditorRenderer)
     
 }
 
-bool WallFeature::CanSelect(WorldEditorRenderer& worldEditorRenderer, float x, float y)
+bool WallFeature::CanSelect(EditableWorld& editableWorld, float x, float y)
 {
-    EditableWorld::Corner& corner1 = worldEditorRenderer.GetWorld().corners[cornerIndex1];
-    EditableWorld::Corner& corner2 = worldEditorRenderer.GetWorld().corners[cornerIndex2];
+    EditableWorld::Corner& corner1 = editableWorld.corners[cornerIndex1];
+    EditableWorld::Corner& corner2 = editableWorld.corners[cornerIndex2];
     float xNorm =  corner2.y - corner1.y;
     float yNorm =  corner1.x - corner2.x;
     float wallNorm = sqrt(xNorm * xNorm + yNorm * yNorm);
@@ -35,11 +35,11 @@ bool WallFeature::CanSelect(WorldEditorRenderer& worldEditorRenderer, float x, f
     return abs(nDist) < selectionRadius;
 }
 
-void WallFeature::Drag(WorldEditor& worldEditor, float dx, float dy)
+void WallFeature::Drag(EditableWorld& world, float dx, float dy)
 {
     
-    worldEditor.MoveCorner(cornerIndex1, dx, dy);
-    worldEditor.MoveCorner(cornerIndex2, dx, dy);
+    WorldEditor::MoveCorner(world, cornerIndex1, dx, dy);
+    WorldEditor::MoveCorner(world, cornerIndex2, dx, dy);
 }
 
 void WallFeature::RenderGui(EditableWorld& editableWorld)

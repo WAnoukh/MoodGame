@@ -6,12 +6,8 @@
 class WorldEditor
 {
 public:
-    WorldEditor(EditableWorld* world) : world(world) {}
-    EditableWorld& GetWorld() { return *world; }
-    int GetNearestCorner(float x, float y, float maxDist = 0.5f) const;
-    void GetCornerPosition(int cornerIndex, float& x, float& y);
-    void SetCornerPosition(int cornerIndex, float x, float y);
-    void MoveCorner(int cornerIndex, float dx, float dy);
-private:
-    EditableWorld* world;
+    static void SetCornerPosition(EditableWorld& world, int cornerIndex, float x, float y);
+    static void MoveCorner(EditableWorld& world, int cornerIndex, float dx, float dy);
+    static int Extrude(EditableWorld& world, int cornerIndex1, int cornerIndex2, int& outExtrudedCorner1, int& outExtrudedCorner2);
+    static void CorrectRoomCornersOrder(EditableWorld& world, int roomIndex);
 };
